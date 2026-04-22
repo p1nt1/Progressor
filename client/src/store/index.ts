@@ -1,23 +1,12 @@
-import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import { logout } from './authSlice';
-import authReducer from './authSlice';
+import { configureStore } from '@reduxjs/toolkit';
 import workoutReducer from './workoutSlice';
-
-const appReducer = combineReducers({
-  auth: authReducer,
-  workout: workoutReducer,
-});
-
-const rootReducer: typeof appReducer = (state, action) => {
-  // Reset all state when user logs out
-  if (action.type === logout.type) {
-    state = undefined;
-  }
-  return appReducer(state, action);
-};
+import userReducer from './userSlice';
 
 export const store = configureStore({
-  reducer: rootReducer,
+  reducer: {
+    workout: workoutReducer,
+    user: userReducer,
+  },
 });
 
 export type RootState = ReturnType<typeof store.getState>;

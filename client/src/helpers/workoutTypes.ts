@@ -1,14 +1,12 @@
-// ---------------------------------------------------------------------------
-// Workout domain enums and constants
-// ---------------------------------------------------------------------------
+import { type LucideIcon, LayoutGrid, Shield, AlignJustify, ChevronsUp, Footprints, Dumbbell, Crosshair } from 'lucide-react';
 
 export enum WorkoutType {
-  Push   = 'push',
-  Pull   = 'pull',
-  Legs   = 'legs',
-  Upper  = 'upper',
-  Lower  = 'lower',
-  Custom = 'custom',
+  Push           = 'push',
+  Pull           = 'pull',
+  Legs           = 'legs',
+  Upper          = 'upper',
+  Lower          = 'lower',
+  FullBody       = 'full body'
 }
 
 export enum MuscleGroup {
@@ -21,14 +19,14 @@ export enum MuscleGroup {
   Core      = 'core',
 }
 
-/** All selectable workout types (excludes 'all' filter) */
+/** All selectable workout types */
 export const WORKOUT_TYPES: WorkoutType[] = [
   WorkoutType.Push,
   WorkoutType.Pull,
   WorkoutType.Legs,
   WorkoutType.Upper,
   WorkoutType.Lower,
-  WorkoutType.Custom,
+  WorkoutType.FullBody
 ];
 
 /** Muscle group filter list, including the 'all' catch-all */
@@ -43,13 +41,12 @@ export const MUSCLE_GROUP_FILTERS: MuscleGroup[] = [
 ];
 
 /** Icon and display label for each muscle group — shared across all filter UIs */
-export const MUSCLE_GROUP_META: Record<MuscleGroup, { icon: string; label: string }> = {
-  [MuscleGroup.All]:       { icon: '💪', label: 'All' },
-  [MuscleGroup.Chest]:     { icon: '🫁', label: 'Chest' },
-  [MuscleGroup.Back]:      { icon: '🔙', label: 'Back' },
-  [MuscleGroup.Shoulders]: { icon: '🏋️', label: 'Shoulders' },
-  [MuscleGroup.Legs]:      { icon: '🦵', label: 'Legs' },
-  [MuscleGroup.Arms]:      { icon: '💪', label: 'Arms' },
-  [MuscleGroup.Core]:      { icon: '⚡', label: 'Core' },
+export const MUSCLE_GROUP_META: Record<MuscleGroup, { icon: LucideIcon; label: string }> = {
+  [MuscleGroup.All]:       { icon: LayoutGrid,   label: 'All' },
+  [MuscleGroup.Chest]:     { icon: Shield,        label: 'Chest' },
+  [MuscleGroup.Back]:      { icon: AlignJustify,  label: 'Back' },
+  [MuscleGroup.Shoulders]: { icon: ChevronsUp,    label: 'Shoulders' },
+  [MuscleGroup.Legs]:      { icon: Footprints,    label: 'Legs' },
+  [MuscleGroup.Arms]:      { icon: Dumbbell,      label: 'Arms' },
+  [MuscleGroup.Core]:      { icon: Crosshair,     label: 'Core' },
 };
-

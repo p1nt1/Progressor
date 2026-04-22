@@ -1,30 +1,10 @@
 import { typeBadgeClass, formatDuration, formatDate } from '../../helpers/workout.helpers.ts';
-import type { WorkoutReview } from '../../types';
+import type { WorkoutDetailData } from '../../types';
 import { WorkoutReviewCard } from '../WorkoutReviewCard/WorkoutReviewCard.tsx';
+import { Calendar, Timer, Check, X, ArrowLeft } from 'lucide-react';
 import './WorkoutDetail.css';
 
-interface DetailSet {
-  id: number;
-  set_number: number;
-  reps: number;
-  weight_kg: number;
-  rpe?: number | null;
-  completed: boolean;
-}
-
-interface DetailExercise {
-  exercise_name: string;
-  sets: DetailSet[];
-}
-
-export interface WorkoutDetailData {
-  name: string;
-  type: string;
-  started_at: string;
-  completed_at: string | null;
-  exercises?: DetailExercise[];
-  ai_review?: WorkoutReview | null;
-}
+export type { WorkoutDetailData };
 
 interface WorkoutDetailProps {
   workout: WorkoutDetailData;
@@ -34,20 +14,17 @@ interface WorkoutDetailProps {
 export function WorkoutDetail({ workout, onBack }: WorkoutDetailProps) {
   return (
     <div className="wd">
-      <button className="wd__back-btn" onClick={onBack}>← Back</button>
+      <button className="wd__back-btn" onClick={onBack}><ArrowLeft size={15} /> Back</button>
 
       <h2 className="wd__title">{workout.name}</h2>
 
       <div className="wd__meta">
         <span className="wd__chip wd__chip--date">
-          📅 {formatDate(workout.started_at)}
+          <Calendar size={11} /> {formatDate(workout.started_at)}
         </span>
-        <span className={typeBadgeClass(workout.type)}>{workout.type || 'custom'}</span>
+        <span className={typeBadgeClass(workout.type)}>{workout.type || 'unknown'}</span>
         <span className="wd__chip wd__chip--duration">
-          ⏱ {formatDuration(workout.started_at, workout.completed_at)}
-        </span>
-        <span className={`wd__chip ${workout.completed_at ? 'wd__chip--done' : 'wd__chip--progress'}`}>
-          {workout.completed_at ? '✅ Completed' : '🔄 In progress'}
+          <Timer size={11} /> {formatDuration(workout.started_at, workout.completed_at)}
         </span>
       </div>
 
@@ -60,8 +37,7 @@ export function WorkoutDetail({ workout, onBack }: WorkoutDetailProps) {
                 <span className="wd__set-label">Set {s.set_number}</span>
                 <span className="wd__set-detail">
                   {s.reps} reps × {s.weight_kg}kg
-                  {s.rpe ? ` · RPE ${s.rpe}` : ''}
-                  {' '}{s.completed ? '✅' : '❌'}
+                  {' '}{s.completed ? <Check size={12} className="wd__set-check" /> : <X size={12} className="wd__set-cross" />}
                 </span>
               </div>
             ))}
@@ -69,10 +45,7 @@ export function WorkoutDetail({ workout, onBack }: WorkoutDetailProps) {
         ))}
       </div>
 
-      {workout.ai_review && (
-        <WorkoutReviewCard review={workout.ai_review} />
-      )}
+      {workout.ai_review && <WorkoutReviewCard review={workout.ai_review} />}
     </div>
   );
 }
-

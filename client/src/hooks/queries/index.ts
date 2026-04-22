@@ -3,4 +3,4 @@ export * from './useWorkoutQueries';
 export * from './useTemplateQueries';
 export * from './useExerciseQueries';
 export * from './useProfileQueries';
-
+export * from './useBootstrapQuery';

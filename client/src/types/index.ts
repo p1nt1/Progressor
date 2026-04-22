@@ -1,116 +1,102 @@
-// ---------------------------------------------------------------------------
-// Shared domain types — client
-// ---------------------------------------------------------------------------
-
 // ── Auth ────────────────────────────────────────────────────────────────────
-export interface AuthUser {
+export type AuthUser = {
   email: string;
   name: string;
   picture: string;
   sub: string;
-}
+};
+
+export type SessionUser = {
+  id: string;
+  email: string;
+  displayName: string | null;
+  picture: string | null;
+};
 
 // ── Exercise ────────────────────────────────────────────────────────────────
-export interface Exercise {
+export type Exercise = {
   id: number;
   name: string;
   muscle_group: string;
   is_compound: boolean;
-}
+};
 
 // ── Workout ─────────────────────────────────────────────────────────────────
-export interface WorkoutSet {
+export type WorkoutSet = {
   setNumber: number;
   reps: number;
   weightKg: number;
-  rpe: number | null;
   completed: boolean;
-}
+};
 
-export interface ActiveExercise {
+export type ActiveExercise = {
   exerciseName: string;
   exerciseId?: number;
   order: number;
   sets: WorkoutSet[];
-}
+};
 
-export interface ActivePlan {
+export type ActivePlan = {
   name: string;
   type: string;
   exercises: ActiveExercise[];
-}
+  /** If set, advance splitRotationIndex to this value on workout completion */
+  nextSplitRotationIndex?: number;
+};
 
-export interface WorkoutSummary {
+export type WorkoutSummary = {
   id: string;
   name: string;
   type: string;
   started_at: string;
   completed_at: string | null;
   notes: string | null;
-}
+};
 
 // ── AI Reviews ──────────────────────────────────────────────────────────
-export interface ExerciseReview {
+export type ExerciseReview = {
   exerciseName: string;
-  verdict: 'improved' | 'maintained' | 'declined';
+  verdict: 'improved' | 'maintained' | 'declined' | 'new';
+  kgDiff: number | null;
+  repsDiff: number | null;
   comment: string;
-}
+};
 
-export interface WorkoutReview {
+export type WorkoutReview = {
   type: string;
   review: {
     summary: string;
     exerciseReviews: ExerciseReview[];
     tip: string;
   };
-}
+};
 
-export interface ProgressionMilestone {
-  id: number;
-  exercise_id: number;
-  exercise_name: string;
-  previous_weight: number;
-  new_weight: number;
-  next_target_weight: number;
-  is_current: boolean;
-  reason: string;
-  created_at: string;
-}
-
-export interface ProgressionSummaryItem {
-  exercise_id: number;
-  exercise_name: string;
-  milestone_count: number;
-  starting_weight: number;
-  current_weight: number;
-  last_progression_at: string;
-}
 
 // ── Template ─────────────────────────────────────────────────────────────────
-export interface TemplateSet {
+export type TemplateSet = {
   setNumber: number;
   reps: number;
   weightKg: number;
-}
+};
 
-export interface TemplateExercise {
+export type TemplateExercise = {
   exerciseId: number;
   exerciseName: string;
   order: number;
   sets: TemplateSet[];
-}
+};
 
-export interface WorkoutTemplate {
+export type WorkoutTemplate = {
   id: number;
   name: string;
   type: string;
   exercises: TemplateExercise[];
   created_at: string;
   updated_at: string;
-}
+};
 
 // ── Profile ──────────────────────────────────────────────────────────────────
-export interface ProfileData {
+export type ProfileData = {
   heightCm: number | null;
   weightKg: number | null;
   sex: string;
@@ -118,20 +104,69 @@ export interface ProfileData {
   experienceLevel: string;
   trainingGoal: string;
   trainingDaysPerWeek: number;
-}
+  selectedSplit: string;
+  splitRotationIndex: number;
+};
 
 // ── UI / Theme ───────────────────────────────────────────────────────────────
 export type Theme = 'dark' | 'light';
 
+// ── Workout Detail ───────────────────────────────────────────────────────────
+export type DetailSet = {
+  id: number;
+  set_number: number;
+  reps: number;
+  weight_kg: number;
+  completed: boolean;
+};
+
+export type DetailExercise = {
+  exercise_name: string;
+  sets: DetailSet[];
+};
+
+export type WorkoutDetailData = {
+  name: string;
+  type: string;
+  started_at: string;
+  completed_at: string | null;
+  completed_sets_count: number;
+  total_sets_count: number;
+  exercises?: DetailExercise[];
+  ai_review?: WorkoutReview | null;
+};
+
 // ── Stats ────────────────────────────────────────────────────────────────────
-export interface OneRM {
+export type OneRM = {
   exerciseId: number;
   exerciseName: string;
   estimated1RM: number;
-}
+};
 
-export interface WorkoutStats {
+export type WorkoutStats = {
   totalWorkouts: number;
   weekStreak: number;
   oneRMs: OneRM[];
-}
+};
+
+// ── Builder ──────────────────────────────────────────────────────────────────
+export type BuilderExercise = {
+  exerciseId: number;
+  exerciseName: string;
+  sets: WorkoutSet[];
+};
+
+// ── Splits ───────────────────────────────────────────────────────────────────
+export type SplitDay = {
+  label: string;
+  focus: string;
+  color: string;
+};
+
+export type Split = {
+  label: string;
+  description: string;
+  /** Maps training-days-per-week → ordered array of day keys */
+  daysMap: Record<number, string[]>;
+  days: Record<string, SplitDay>;
+};

@@ -1,4 +1,5 @@
-import { WorkoutType, MuscleGroup } from './workoutTypes';
+import { WorkoutType } from './workoutTypes';
+import type { WorkoutSet, ActiveExercise, Exercise } from '../types';
 
 // ---------------------------------------------------------------------------
 // roundToHalf
@@ -10,62 +11,56 @@ export function roundToHalf(value: number): number {
 }
 
 // ---------------------------------------------------------------------------
-// detectWorkoutType
-// Infers the workout type from a list of muscle groups trained.
-// ---------------------------------------------------------------------------
-export function detectWorkoutType(muscleGroups: (MuscleGroup | string)[]): WorkoutType {
-  const counts: Record<string, number> = {};
-  muscleGroups.forEach((g) => (counts[g] = (counts[g] || 0) + 1));
-
-  const chest     = counts[MuscleGroup.Chest]     || 0;
-  const back      = counts[MuscleGroup.Back]      || 0;
-  const shoulders = counts[MuscleGroup.Shoulders] || 0;
-  const legs      = counts[MuscleGroup.Legs]      || 0;
-  const arms      = counts[MuscleGroup.Arms]      || 0;
-  const core      = counts[MuscleGroup.Core]      || 0;
-
-  const upper = chest + back + shoulders + arms;
-  const lower = legs + core;
-
-  if (legs > 0 && upper === 0)                                           return WorkoutType.Legs;
-  if ((chest > 0 || shoulders > 0) && back === 0 && legs === 0)         return WorkoutType.Push;
-  if (back > 0 && chest === 0 && legs === 0)                             return WorkoutType.Pull;
-  if (upper > 0 && lower === 0)                                          return WorkoutType.Upper;
-  if (lower > 0 && upper === 0)                                          return WorkoutType.Lower;
-  return WorkoutType.Custom;
-}
-
-// ---------------------------------------------------------------------------
 // typeBadgeClass
 // Returns the CSS badge class for a given workout type.
 // ---------------------------------------------------------------------------
-const TYPED_WORKOUT_TYPES = new Set<string>(Object.values(WorkoutType).filter((t) => t !== WorkoutType.Custom));
+const TYPED_WORKOUT_TYPES = new Set<string>(Object.values(WorkoutType));
 
 export function typeBadgeClass(type: string): string {
-  const t = (type || WorkoutType.Custom).toLowerCase();
-  return `badge badge--${TYPED_WORKOUT_TYPES.has(t) ? t : WorkoutType.Custom}`;
+  const t = (type || WorkoutType.Push).toLowerCase().replace(/\s+/g, '-');
+  return `badge badge--${TYPED_WORKOUT_TYPES.has(type?.toLowerCase() ?? '') ? t : 'other'}`;
 }
 
 // ---------------------------------------------------------------------------
 // createDefaultSets
 // Builds the standard 3-set default for a new exercise.
 // ---------------------------------------------------------------------------
-export interface DefaultSet {
-  setNumber: number;
-  reps: number;
-  weightKg: number;
-  rpe: null;
-  completed: boolean;
-}
-
-export function createDefaultSets(count = 3, reps = 0, weightKg = 0): DefaultSet[] {
+export function createDefaultSets(count = 3, reps = 0, weightKg = 0): WorkoutSet[] {
   return Array.from({ length: count }, (_, i) => ({
     setNumber: i + 1,
     reps,
     weightKg,
-    rpe: null,
     completed: false,
   }));
+}
+
+// ---------------------------------------------------------------------------
+// mapToActiveExercises
+// Normalises raw AI / template exercises into typed ActiveExercise[].
+// Optionally resolves exercise IDs from a lookup list.
+// ---------------------------------------------------------------------------
+export function mapToActiveExercises(
+  raw: Array<Record<string, unknown>>,
+  exerciseList?: Exercise[],
+): ActiveExercise[] {
+  const lookup = exerciseList
+    ? new Map(exerciseList.map((e) => [e.name.toLowerCase(), e]))
+    : undefined;
+
+  return raw.map((ex: Record<string, unknown>, i: number) => {
+    const found = lookup?.get((ex.exerciseName as string)?.toLowerCase());
+    return {
+      exerciseName: (found?.name ?? ex.exerciseName) as string,
+      exerciseId: (found?.id ?? ex.exerciseId) as number | undefined,
+      order: (ex.order as number) ?? i + 1,
+      sets: ((ex.sets || []) as Record<string, unknown>[]).map((s) => ({
+        setNumber: s.setNumber as number,
+        reps: s.reps as number,
+        weightKg: s.weightKg as number,
+        completed: (s.completed ?? false) as boolean,
+      })),
+    };
+  });
 }
 
 // ---------------------------------------------------------------------------

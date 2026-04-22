@@ -1,30 +1,56 @@
--- 001_init.sql
+-- 001_init.sql  –  single-file schema + seed data
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Drop all tables to allow re-running migration
-DROP TABLE IF EXISTS progression_log CASCADE;
+-- Tear down in dependency order so we can re-run safely
 DROP TABLE IF EXISTS sets CASCADE;
 DROP TABLE IF EXISTS workout_exercises CASCADE;
+DROP TABLE IF EXISTS workout_templates CASCADE;
 DROP TABLE IF EXISTS workouts CASCADE;
 DROP TABLE IF EXISTS exercises CASCADE;
+DROP TABLE IF EXISTS profiles CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TYPE IF EXISTS muscle_group CASCADE;
 DROP TYPE IF EXISTS workout_type CASCADE;
 
--- Users
+-- ─── TYPES ──────────────────────────────────────────────────────────────────
+
+CREATE TYPE muscle_group AS ENUM ('chest','back','shoulders','legs','arms','core');
+CREATE TYPE workout_type AS ENUM ('push','pull','legs','upper','lower','full body');
+
+-- ─── USERS ──────────────────────────────────────────────────────────────────
+
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  cognito_sub VARCHAR(255) UNIQUE NOT NULL,
-  email VARCHAR(255) NOT NULL,
+  cognito_sub VARCHAR(255) UNIQUE,
+  email VARCHAR(255),
   display_name VARCHAR(255),
+  username VARCHAR(255) UNIQUE,
+  password_hash VARCHAR(255),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Exercise muscle groups
-CREATE TYPE muscle_group AS ENUM ('chest','back','shoulders','legs','arms','core');
+-- ─── PROFILES ───────────────────────────────────────────────────────────────
 
--- Exercises catalog
+CREATE TABLE profiles (
+  id SERIAL PRIMARY KEY,
+  user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  height_cm DECIMAL(5,1),
+  weight_kg DECIMAL(5,1),
+  sex VARCHAR(20),
+  date_of_birth DATE,
+  experience_level VARCHAR(20) DEFAULT 'intermediate',
+  training_goal VARCHAR(30) DEFAULT 'hypertrophy',
+  training_days_per_week SMALLINT DEFAULT 4,
+  selected_split VARCHAR(20) DEFAULT 'ppl',
+  split_rotation_index SMALLINT DEFAULT 0,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_profiles_user ON profiles(user_id);
+
+-- ─── EXERCISES ──────────────────────────────────────────────────────────────
+
 CREATE TABLE exercises (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) UNIQUE NOT NULL,
@@ -32,58 +58,66 @@ CREATE TABLE exercises (
   is_compound BOOLEAN DEFAULT false
 );
 
--- Workout type
-CREATE TYPE workout_type AS ENUM ('push','pull','legs','upper','lower','custom');
+-- ─── WORKOUTS ───────────────────────────────────────────────────────────────
 
--- Workouts
 CREATE TABLE workouts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name VARCHAR(255) NOT NULL,
-  type workout_type DEFAULT 'custom',
+  type workout_type DEFAULT 'push',
   started_at TIMESTAMPTZ DEFAULT NOW(),
   completed_at TIMESTAMPTZ,
-  notes TEXT
+  notes TEXT,
+  ai_review JSONB DEFAULT NULL
 );
-CREATE INDEX idx_workouts_user ON workouts(user_id);
 
--- Workout exercises (join table with ordering)
+CREATE INDEX idx_workouts_user ON workouts(user_id);
+CREATE INDEX idx_workouts_user_completed ON workouts(user_id, completed_at DESC);
+
+-- ─── WORKOUT EXERCISES ─────────────────────────────────────────────────────
+
 CREATE TABLE workout_exercises (
   id SERIAL PRIMARY KEY,
   workout_id UUID NOT NULL REFERENCES workouts(id) ON DELETE CASCADE,
   exercise_id INT NOT NULL REFERENCES exercises(id),
   "order" SMALLINT NOT NULL DEFAULT 0
 );
+
 CREATE INDEX idx_we_workout ON workout_exercises(workout_id);
 
--- Sets
+-- ─── SETS ───────────────────────────────────────────────────────────────────
+
 CREATE TABLE sets (
   id SERIAL PRIMARY KEY,
   workout_exercise_id INT NOT NULL REFERENCES workout_exercises(id) ON DELETE CASCADE,
   set_number SMALLINT NOT NULL,
   reps SMALLINT,
   weight_kg DECIMAL(6,2),
-  rpe DECIMAL(3,1),
   completed BOOLEAN DEFAULT false
 );
+
 CREATE INDEX idx_sets_we ON sets(workout_exercise_id);
 
--- Progression log
-CREATE TABLE progression_log (
+-- ─── WORKOUT TEMPLATES ─────────────────────────────────────────────────────
+
+CREATE TABLE workout_templates (
   id SERIAL PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  exercise_id INT NOT NULL REFERENCES exercises(id),
-  previous_weight DECIMAL(6,2),
-  new_weight DECIMAL(6,2),
-  reason VARCHAR(500),
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  name VARCHAR(255) NOT NULL,
+  type VARCHAR(50) DEFAULT 'push',
+  exercises JSONB NOT NULL DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, name)
 );
-CREATE INDEX idx_prog_user_ex ON progression_log(user_id, exercise_id);
 
--- Seed exercises
+CREATE INDEX idx_templates_user ON workout_templates(user_id);
+
+-- ─── SEED EXERCISES ─────────────────────────────────────────────────────────
+
 INSERT INTO exercises (name, muscle_group, is_compound) VALUES
 
-  -- ── CHEST ─────────────────────────────────────────────────────────────────
+  -- CHEST
   ('Bench Press',                    'chest', true),
   ('Incline Dumbbell Press',         'chest', true),
   ('Flat Dumbbell Press',            'chest', true),
@@ -92,11 +126,11 @@ INSERT INTO exercises (name, muscle_group, is_compound) VALUES
   ('Push-Ups',                       'chest', true),
   ('Dips (Chest)',                   'chest', true),
   ('Cable Flyes',                    'chest', false),
-  ('Pec Deck / Machine Fly',         'chest', false),
-  ('Low-to-High Cable Fly',          'chest', false),
-  ('High-to-Low Cable Fly',          'chest', false),
+  ('Pec Deck / Machine Fly',        'chest', false),
+  ('Low-to-High Cable Fly',         'chest', false),
+  ('High-to-Low Cable Fly',         'chest', false),
 
-  -- ── BACK ──────────────────────────────────────────────────────────────────
+  -- BACK
   ('Deadlift',                       'back', true),
   ('Barbell Row',                    'back', true),
   ('T-Bar Row',                      'back', true),
@@ -111,7 +145,7 @@ INSERT INTO exercises (name, muscle_group, is_compound) VALUES
   ('Hyperextensions',                'back', false),
   ('Shrugs',                         'back', false),
 
-  -- ── SHOULDERS ─────────────────────────────────────────────────────────────
+  -- SHOULDERS
   ('Overhead Press',                 'shoulders', true),
   ('Dumbbell Shoulder Press',        'shoulders', true),
   ('Arnold Press',                   'shoulders', true),
@@ -123,7 +157,7 @@ INSERT INTO exercises (name, muscle_group, is_compound) VALUES
   ('Face Pulls',                     'shoulders', false),
   ('Rear Delt Flyes',                'shoulders', false),
 
-  -- ── LEGS ──────────────────────────────────────────────────────────────────
+  -- LEGS
   ('Barbell Squat',                  'legs', true),
   ('Hack Squat',                     'legs', true),
   ('Goblet Squat',                   'legs', true),
@@ -141,9 +175,9 @@ INSERT INTO exercises (name, muscle_group, is_compound) VALUES
   ('Glute Bridge',                   'legs', false),
   ('Calf Raises',                    'legs', false),
   ('Seated Calf Raise',              'legs', false),
-  ('Abductor Machine',               'legs', false),
+  ('Abductor Machine',              'legs', false),
 
-  -- ── ARMS ──────────────────────────────────────────────────────────────────
+  -- ARMS
   ('Barbell Curl',                   'arms', false),
   ('EZ Bar Curl',                    'arms', false),
   ('Preacher Curl',                  'arms', false),
@@ -159,10 +193,10 @@ INSERT INTO exercises (name, muscle_group, is_compound) VALUES
   ('Cable Overhead Tricep Extension','arms', false),
   ('Close-Grip Bench Press',         'arms', true),
   ('Dips (Triceps)',                 'arms', true),
-  ('Diamond Push-Ups',               'arms', true),
-  ('Tricep Kickbacks',               'arms', false),
+  ('Diamond Push-Ups',              'arms', true),
+  ('Tricep Kickbacks',              'arms', false),
 
-  -- ── CORE ──────────────────────────────────────────────────────────────────
+  -- CORE
   ('Plank',                          'core', false),
   ('Side Plank',                     'core', false),
   ('Dead Bug',                       'core', false),
@@ -177,4 +211,3 @@ INSERT INTO exercises (name, muscle_group, is_compound) VALUES
   ('Dragon Flag',                    'core', false),
   ('Woodchop',                       'core', false),
   ('Landmine Rotation',              'core', false);
-

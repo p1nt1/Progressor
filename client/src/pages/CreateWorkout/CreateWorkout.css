@@ -34,7 +34,7 @@
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;
-  justify-content: space-around;
+  justify-content: space-between;
 }
 
 .workout-form__type-btn {
@@ -53,7 +53,7 @@
 .workout-form__type-btn--active {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: #fff;
+  color: var(--color-white);
 }
 
 /* ── Mode toggle ─────────────────────────────────────── */
@@ -88,7 +88,7 @@
   border-radius: var(--radius-lg);
   border: none;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-white);
   font-weight: var(--font-bold);
   font-size: var(--text-base);
   cursor: pointer;
@@ -142,7 +142,7 @@
   border-radius: var(--radius-lg);
   border: none;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-white);
   font-weight: var(--font-bold);
   font-size: var(--text-base);
   cursor: pointer;
@@ -166,7 +166,7 @@
   border-radius: var(--radius-lg);
   border: none;
   background: var(--color-success);
-  color: #fff;
+  color: var(--color-white);
   font-weight: var(--font-bold);
   font-size: var(--text-base);
   cursor: pointer;
@@ -180,7 +180,7 @@
 
 /* ── Saved toast ─────────────────────────────────────── */
 .workout-form__saved-toast {
-  background: rgba(34, 197, 94, 0.12);
+  background: var(--color-success-subtle);
   border: 1px solid var(--color-success);
   border-radius: var(--radius-lg);
   padding: var(--space-3) var(--space-4);
@@ -227,6 +227,17 @@
   color: var(--color-text-tertiary);
 }
 
+.workout-form__custom-name--error {
+  border-color: var(--color-danger, #e53e3e) !important;
+  outline-color: var(--color-danger, #e53e3e);
+}
+
+.workout-form__custom-name-error {
+  color: var(--color-danger, #e53e3e);
+  font-size: 0.8rem;
+  margin-top: -8px;
+}
+
 /* ── Exercise picker ─────────────────────────────────── */
 .workout-form__exercise-picker {
   display: flex;
@@ -271,17 +282,17 @@
 /* Per-group accent on active */
 .workout-form__muscle-btn--active,
 .workout-form__muscle-btn:active {
-  color: #fff;
+  color: var(--color-white);
   border-color: transparent;
 }
 
 .workout-form__muscle-btn--all.workout-form__muscle-btn--active     { background: var(--color-primary); }
-.workout-form__muscle-btn--chest.workout-form__muscle-btn--active    { background: #f97316; }
-.workout-form__muscle-btn--back.workout-form__muscle-btn--active     { background: #3b82f6; }
-.workout-form__muscle-btn--shoulders.workout-form__muscle-btn--active{ background: #a855f7; }
-.workout-form__muscle-btn--legs.workout-form__muscle-btn--active     { background: #22c55e; }
-.workout-form__muscle-btn--arms.workout-form__muscle-btn--active     { background: #ef4444; }
-.workout-form__muscle-btn--core.workout-form__muscle-btn--active     { background: #14b8a6; }
+.workout-form__muscle-btn--chest.workout-form__muscle-btn--active    { background: var(--color-muscle-chest); }
+.workout-form__muscle-btn--back.workout-form__muscle-btn--active     { background: var(--color-muscle-back); }
+.workout-form__muscle-btn--shoulders.workout-form__muscle-btn--active{ background: var(--color-muscle-shoulders); }
+.workout-form__muscle-btn--legs.workout-form__muscle-btn--active     { background: var(--color-muscle-legs); }
+.workout-form__muscle-btn--arms.workout-form__muscle-btn--active     { background: var(--color-muscle-arms); }
+.workout-form__muscle-btn--core.workout-form__muscle-btn--active     { background: var(--color-muscle-core); }
 
 /* Subtle tint on hover for inactive */
 .workout-form__muscle-btn:not(.workout-form__muscle-btn--active):hover {
@@ -424,33 +435,44 @@
 
 /* ── AI info card ────────────────────────────────────── */
 .ai-info-card {
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--color-primary) 12%, var(--color-surface-1)),
-    color-mix(in srgb, var(--color-accent) 8%, var(--color-surface-1))
-  );
-  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
+  background: linear-gradient(135deg, var(--color-hero-from) 0%, var(--color-hero-mid) 45%, var(--color-hero-to) 100%);
+  border: 1px solid var(--color-accent-muted);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-info-card::before {
+  content: '';
+  position: absolute;
+  inset: -40px;
+  background: radial-gradient(ellipse at 70% 40%, rgba(139,92,246,0.3) 0%, transparent 60%),
+              radial-gradient(ellipse at 10% 80%, rgba(99,102,241,0.2) 0%, transparent 55%);
+  pointer-events: none;
 }
 
 .ai-info-card__header {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  position: relative;
+  z-index: 1;
 }
 
 .ai-info-card__icon {
   font-size: 1.25rem;
   line-height: 1;
+  color: var(--icon-brand);
 }
 
 .ai-info-card__title {
   font-size: var(--text-sm);
   font-weight: var(--font-bold);
-  color: var(--color-primary-light);
+  color: var(--color-white);
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
 }
@@ -460,6 +482,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  position: relative;
+  z-index: 1;
 }
 
 .ai-info-card__item {
@@ -467,7 +491,7 @@
   align-items: flex-start;
   gap: var(--space-2);
   font-size: var(--text-sm);
-  color: var(--color-text-secondary);
+  color: var(--white-75);
   line-height: var(--leading-snug);
 }
 
@@ -475,9 +499,9 @@
   font-size: 1rem;
   flex-shrink: 0;
   margin-top: 1px;
+  color: var(--icon-brand);
 }
 
 .ai-info-card__item strong {
-  color: var(--color-text-primary);
-  font-weight: var(--font-semibold);
+  color: var(--color-white);
 }

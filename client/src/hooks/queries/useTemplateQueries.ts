@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { templates as templatesApi } from '../../api/client';
-import type { WorkoutTemplate } from '../../types';
+import type { WorkoutTemplate, ActiveExercise } from '../../types';
 
 export const templateKeys = {
   all: ['templates'] as const,
@@ -20,7 +20,7 @@ export function useTemplates() {
 export function useSaveTemplate() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { name: string; type: string; exercises: any[] }) => {
+    mutationFn: async (data: { name: string; type: string; exercises: ActiveExercise[] }) => {
       const res = await templatesApi.create(data);
       return res.data;
     },

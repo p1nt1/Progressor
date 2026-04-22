@@ -37,7 +37,7 @@
   background: var(--color-surface-2);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-full);
-  padding: 2px 9px;
+  padding: var(--chip-padding-y) var(--chip-padding-x);
   white-space: nowrap;
 }
 
@@ -97,157 +97,15 @@
 
 .history-tabs__badge {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-white);
   font-size: 0.65rem;
   font-weight: var(--font-bold);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   padding: 1px 6px;
   line-height: 1.4;
   min-width: 18px;
   text-align: center;
 }
-
-/* ── Milestones ──────────────────────────────────────── */
-.milestones__empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-10) var(--space-4);
-  text-align: center;
-  color: var(--color-text-secondary);
-  font-size: var(--text-sm);
-}
-
-.milestones__empty-icon {
-  font-size: 2.5rem;
-}
-
-.milestones__empty-sub {
-  color: var(--color-text-tertiary);
-  font-size: var(--text-xs);
-  max-width: 260px;
-}
-
-.milestones__list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-/* ── Milestone card ──────────────────────────────────── */
-/* ── Milestone Card ──────────────────────────────────── */
-.mc {
-  background: var(--color-surface-1);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border-subtle);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-}
-
-.mc__header {
-  width: 100%;
-  background: none;
-  border: none;
-  padding: var(--space-4);
-  cursor: pointer;
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  transition: background var(--transition-fast);
-}
-
-.mc__header:hover { background: var(--color-surface-2); }
-.mc__header:active { background: var(--color-surface-2); }
-
-/* Top row */
-.mc__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.mc__name {
-  font-size: var(--text-base);
-  font-weight: var(--font-bold);
-  color: var(--color-text-primary);
-  flex: 1;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mc__chevron {
-  color: var(--color-text-tertiary);
-  font-size: var(--text-xs);
-  flex-shrink: 0;
-  margin-left: var(--space-2);
-}
-
-/* Weight row */
-.mc__weights {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.mc__weight-block {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.mc__weight-label {
-  font-size: 0.62rem;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-wider);
-  color: var(--color-text-tertiary);
-}
-
-.mc__weight-value {
-  font-size: var(--text-md);
-  font-weight: var(--font-bold);
-  color: var(--color-text-primary);
-  line-height: 1;
-}
-
-.mc__weight-value--now {
-  color: var(--color-primary);
-}
-
-.mc__weight-arrow {
-  color: var(--color-text-tertiary);
-  font-size: var(--text-base);
-  align-self: flex-end;
-  padding-bottom: 2px;
-}
-
-.mc__gain-badge {
-  margin-left: auto;
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
-  color: var(--color-success);
-  background: color-mix(in srgb, var(--color-success) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-success) 25%, transparent);
-  padding: 3px 10px;
-  border-radius: var(--radius-full);
-  white-space: nowrap;
-}
-
-.mc__gain-badge--neg {
-  color: var(--color-danger);
-  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
-  border-color: color-mix(in srgb, var(--color-danger) 25%, transparent);
-}
-
-.mc__gain-badge--zero {
-  color: var(--color-warning);
-  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
-  border-color: color-mix(in srgb, var(--color-warning) 25%, transparent);
-}
-
 
 
 /* ── Timeline ────────────────────────────────────────── */
@@ -287,8 +145,8 @@
 }
 
 .mc__entry-dot {
-  width: 12px;
-  height: 12px;
+  width: var(--size-dot-sm);
+  height: var(--size-dot-sm);
   border-radius: 50%;
   background: var(--color-primary);
   flex-shrink: 0;
@@ -389,7 +247,7 @@
   gap: var(--space-2);
 }
 
-.mc__next-target-icon { font-size: 1.1rem; }
+.mc__next-target-icon { font-size: var(--text-icon); }
 
 .mc__next-target-label {
   font-size: var(--text-sm);
@@ -424,4 +282,3 @@
 .mc__entry--current .mc__entry-new-weight {
   color: var(--color-success);
 }
-

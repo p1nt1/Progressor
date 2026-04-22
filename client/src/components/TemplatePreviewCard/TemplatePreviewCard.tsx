@@ -1,5 +1,6 @@
 import { typeBadgeClass } from '../../helpers/workout.helpers';
-import {ExercisePreviewItem, PreviewSet} from '../ExercisePreviewItem/ExercisePreviewItem.tsx';
+import type { PreviewSet} from '../ExercisePreviewItem/ExercisePreviewItem.tsx';
+import {ExercisePreviewItem} from '../ExercisePreviewItem/ExercisePreviewItem.tsx';
 import './TemplatePreviewCard.css';
 
 interface PreviewExercise {

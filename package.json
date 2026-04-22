@@ -1,7 +1,11 @@
 {
   "name": "Progressor",
   "private": true,
-  "workspaces": ["client", "server"],
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "scripts": {
     "dev:client": "npm run dev -w client",
     "dev:server": "npm run dev -w server",
@@ -13,11 +17,18 @@
     "typecheck:client": "npm run typecheck -w client",
     "typecheck:server": "npm run typecheck -w server",
     "migrate": "npm run migrate -w server",
-    "validate": "npm run typecheck && npm run build",
-    "validate:quick": "npm run typecheck"
+    "validate": "npm run typecheck && npm run lint && npm run build",
+    "validate:quick": "npm run typecheck",
+    "lint": "eslint client/src server/src",
+    "lint:fix": "eslint client/src server/src --fix"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@eslint/js": "^10.0.1",
+    "concurrently": "^8.2.2",
+    "eslint": "^10.2.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.5.0",
+    "typescript-eslint": "^8.59.0"
   }
 }
-

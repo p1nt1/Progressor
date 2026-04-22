@@ -9,8 +9,8 @@
 }
 
 .ex-preview__order {
-  width: 22px;
-  height: 22px;
+  width: var(--size-icon-sm);
+  height: var(--size-icon-sm);
   border-radius: var(--radius-full);
   background: var(--color-surface-2);
   color: var(--color-text-tertiary);
@@ -53,7 +53,6 @@
   background: var(--color-surface-2);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-sm);
-  padding: 2px 7px;
+  padding: var(--chip-padding-y) 7px;
   white-space: nowrap;
 }
-

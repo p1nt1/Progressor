@@ -1,36 +1,49 @@
 import { useState } from 'react';
-import { useAppSelector } from '../../store/hooks.ts';
+import {
+  User, Ruler, Weight, Calendar, Sprout, Zap, Flame,
+  Dumbbell, TrendingUp, Wind, Target, Sparkles,
+  ChevronRight, ChevronLeft, Rocket, Mars, Venus, CircleDot,
+  CheckCircle2, LayoutGrid,
+} from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth.tsx';
 import { useProfile, useSaveProfile } from '../../hooks/queries';
+import type { SplitKey } from '../../helpers/splits';
+import { SPLITS, SPLIT_KEYS, getWeekSchedule } from '../../helpers/splits';
 import type { ProfileData } from '../../types';
 import './ProfileSetupPage.css';
 
 const SEX_OPTIONS = [
-  { label: 'Male', icon: '♂️' },
-  { label: 'Female', icon: '♀️' },
-  { label: 'Other', icon: '⚧' },
+  { label: 'Male',   Icon: Mars },
+  { label: 'Female', Icon: Venus },
+  { label: 'Other',  Icon: CircleDot },
 ];
 
 const EXPERIENCE_OPTIONS = [
-  { label: 'Beginner', icon: '🌱', desc: 'Less than 1 year' },
-  { label: 'Intermediate', icon: '⚡', desc: '1–3 years' },
-  { label: 'Advanced', icon: '🔥', desc: '3+ years' },
+  { label: 'Beginner',     Icon: Sprout, desc: 'Less than 1 year' },
+  { label: 'Intermediate', Icon: Zap,    desc: '1–3 years' },
+  { label: 'Advanced',     Icon: Flame,  desc: '3+ years' },
 ];
 
 const GOAL_OPTIONS = [
-  { label: 'Hypertrophy', icon: '💪', desc: 'Build muscle size' },
-  { label: 'Strength', icon: '🏋️', desc: 'Increase max lifts' },
-  { label: 'Endurance', icon: '🏃', desc: 'Boost stamina' },
-  { label: 'Weight Loss', icon: '🎯', desc: 'Burn fat' },
-  { label: 'General Fitness', icon: '✨', desc: 'Stay healthy' },
+  { label: 'Hypertrophy',    Icon: Dumbbell,   desc: 'Build muscle size' },
+  { label: 'Strength',       Icon: TrendingUp, desc: 'Increase max lifts' },
+  { label: 'Endurance',      Icon: Wind,       desc: 'Boost stamina' },
+  { label: 'Weight Loss',    Icon: Target,     desc: 'Burn fat' },
+  { label: 'General Fitness',Icon: Sparkles,   desc: 'Stay healthy' },
 ];
 
-const STEPS = ['About You', 'Experience', 'Goals'];
+const STEPS = [
+  { label: 'About You',   Icon: User },
+  { label: 'Experience',  Icon: Zap },
+  { label: 'Goals',       Icon: Target },
+  { label: 'Split',       Icon: LayoutGrid },
+];
 
 export function ProfileSetupPage() {
   const { data: existing } = useProfile();
   const saveProfileMutation = useSaveProfile();
   const saving = saveProfileMutation.isPending;
-  const user = useAppSelector((s) => s.auth.user);
+  const { user } = useAuth();
 
   const [step, setStep] = useState(0);
   const [heightCm, setHeightCm] = useState(existing?.heightCm?.toString() ?? '');
@@ -40,14 +53,22 @@ export function ProfileSetupPage() {
   const [experienceLevel, setExperienceLevel] = useState(existing?.experienceLevel ?? 'intermediate');
   const [trainingGoal, setTrainingGoal] = useState(existing?.trainingGoal ?? 'hypertrophy');
   const [trainingDaysPerWeek, setTrainingDaysPerWeek] = useState(existing?.trainingDaysPerWeek ?? 4);
+  const [selectedSplit, setSelectedSplit] = useState<SplitKey>((existing?.selectedSplit as SplitKey) ?? 'ppl');
   const [error, setError] = useState('');
 
-  const firstName = user?.name?.split(' ')[0] ?? 'there';
+  const firstName = user?.displayName?.split(' ')[0] ?? 'there';
 
   const validateStep = () => {
     if (step === 0 && (!heightCm || !weightKg || !sex)) {
       setError('Please fill in all fields.');
       return false;
+    }
+    if (step === 3) {
+      const supported = Object.keys(SPLITS[selectedSplit].daysMap).map(Number);
+      if (!supported.includes(trainingDaysPerWeek)) {
+        setError(`${SPLITS[selectedSplit].label} doesn't support ${trainingDaysPerWeek} days. Pick a compatible split.`);
+        return false;
+      }
     }
     setError('');
     return true;
@@ -63,8 +84,10 @@ export function ProfileSetupPage() {
       sex: sex.toLowerCase(),
       dateOfBirth: dateOfBirth ?? '',
       experienceLevel: experienceLevel.toLowerCase(),
-      trainingGoal: trainingGoal.toLowerCase().replace(' ', '_'),
+      trainingGoal: trainingGoal.toLowerCase().replace(/ /g, '_'),
       trainingDaysPerWeek,
+      selectedSplit,
+      splitRotationIndex: existing?.splitRotationIndex ?? 0,
     };
     saveProfileMutation.mutate(profileData);
   };
@@ -77,22 +100,25 @@ export function ProfileSetupPage() {
       <div className="ps__hero">
         <div className="ps__hero-blob" />
         <div className="ps__hero-content">
-          <div className="ps__avatar">💪</div>
+          <div className="ps__avatar"><Dumbbell size={32} strokeWidth={1.8} /></div>
           <h1 className="ps__greeting">Hey, {firstName}!</h1>
           <p className="ps__subheading">Let's build your training profile</p>
         </div>
       </div>
 
-      {/* Progress bar */}
+      {/* Step indicators */}
       <div className="ps__progress-wrap">
         <div className="ps__progress-bar">
           <div className="ps__progress-fill" style={{ width: `${progress}%` }} />
         </div>
         <div className="ps__steps">
-          {STEPS.map((s, i) => (
-            <span key={s} className={`ps__step-label ${i === step ? 'ps__step-label--active' : ''} ${i < step ? 'ps__step-label--done' : ''}`}>
-              {i < step ? '✓' : i + 1}. {s}
-            </span>
+          {STEPS.map(({ label, Icon }, i) => (
+            <div key={label} className={`ps__step ${i === step ? 'ps__step--active' : ''} ${i < step ? 'ps__step--done' : ''}`}>
+              <div className="ps__step-bubble">
+                {i < step ? <CheckCircle2 size={14} /> : <Icon size={14} />}
+              </div>
+              <span className="ps__step-label">{label}</span>
+            </div>
           ))}
         </div>
       </div>
@@ -103,19 +129,24 @@ export function ProfileSetupPage() {
         {/* ── Step 0: About You ── */}
         {step === 0 && (
           <div className="ps__section">
-            <h2 className="ps__section-title">About You</h2>
+            <div className="ps__section-header">
+              <div>
+                <h2 className="ps__section-title">About You</h2>
+                <p className="ps__section-sub">Give us a few details — we’ll take it from there</p>
+              </div>
+            </div>
 
             <div className="ps__field">
               <label className="ps__label">Sex</label>
               <div className="ps__chip-group">
-                {SEX_OPTIONS.map((o) => (
+                {SEX_OPTIONS.map(({ label, Icon }) => (
                   <button
-                    key={o.label}
-                    className={`ps__chip ${sex.toLowerCase() === o.label.toLowerCase() ? 'ps__chip--active' : ''}`}
-                    onClick={() => setSex(o.label)}
+                    key={label}
+                    className={`ps__chip ${sex.toLowerCase() === label.toLowerCase() ? 'ps__chip--active' : ''}`}
+                    onClick={() => setSex(label)}
                   >
-                    <span className="ps__chip-icon">{o.icon}</span>
-                    {o.label}
+                    <Icon size={16} className="ps__chip-icon" />
+                    {label}
                   </button>
                 ))}
               </div>
@@ -124,17 +155,26 @@ export function ProfileSetupPage() {
             <div className="ps__row">
               <div className="ps__field">
                 <label className="ps__label">Height (cm)</label>
-                <input type="number" className="ps__input" placeholder="175" value={heightCm} onChange={(e) => setHeightCm(e.target.value)} />
+                <div className="ps__input-wrap">
+                  <Ruler size={16} className="ps__input-icon" />
+                  <input type="number" className="ps__input ps__input--icon" placeholder="175" value={heightCm} onChange={(e) => setHeightCm(e.target.value)} />
+                </div>
               </div>
               <div className="ps__field">
                 <label className="ps__label">Weight (kg)</label>
-                <input type="number" className="ps__input" placeholder="80" value={weightKg} onChange={(e) => setWeightKg(e.target.value)} />
+                <div className="ps__input-wrap">
+                  <Weight size={16} className="ps__input-icon" />
+                  <input type="number" className="ps__input ps__input--icon" placeholder="80" value={weightKg} onChange={(e) => setWeightKg(e.target.value)} />
+                </div>
               </div>
             </div>
 
             <div className="ps__field">
               <label className="ps__label">Date of Birth</label>
-              <input type="date" className="ps__input" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
+              <div className="ps__input-wrap">
+                <Calendar size={16} className="ps__input-icon" />
+                <input type="date" className="ps__input ps__input--icon" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
+              </div>
             </div>
           </div>
         )}
@@ -142,17 +182,24 @@ export function ProfileSetupPage() {
         {/* ── Step 1: Experience ── */}
         {step === 1 && (
           <div className="ps__section">
-            <h2 className="ps__section-title">Experience Level</h2>
+            <div className="ps__section-header">
+              <div>
+                <h2 className="ps__section-title">Experience Level</h2>
+                <p className="ps__section-sub">How long have you been lifting?</p>
+              </div>
+            </div>
             <div className="ps__card-grid">
-              {EXPERIENCE_OPTIONS.map((o) => (
+              {EXPERIENCE_OPTIONS.map(({ label, Icon, desc }) => (
                 <button
-                  key={o.label}
-                  className={`ps__select-card ${experienceLevel.toLowerCase() === o.label.toLowerCase() ? 'ps__select-card--active' : ''}`}
-                  onClick={() => setExperienceLevel(o.label)}
+                  key={label}
+                  className={`ps__select-card ${experienceLevel.toLowerCase() === label.toLowerCase() ? 'ps__select-card--active' : ''}`}
+                  onClick={() => setExperienceLevel(label)}
                 >
-                  <span className="ps__select-card-icon">{o.icon}</span>
-                  <span className="ps__select-card-label">{o.label}</span>
-                  <span className="ps__select-card-desc">{o.desc}</span>
+                  <div className="ps__select-card-icon-wrap">
+                    <Icon size={24} />
+                  </div>
+                  <span className="ps__select-card-label">{label}</span>
+                  <span className="ps__select-card-desc">{desc}</span>
                 </button>
               ))}
             </div>
@@ -162,22 +209,41 @@ export function ProfileSetupPage() {
         {/* ── Step 2: Goals ── */}
         {step === 2 && (
           <div className="ps__section">
-            <h2 className="ps__section-title">Training Goal</h2>
+            <div className="ps__section-header">
+              <div>
+                <h2 className="ps__section-title">Training Goal</h2>
+                <p className="ps__section-sub">Pick what you're training for</p>
+              </div>
+            </div>
             <div className="ps__card-grid ps__card-grid--goals">
-              {GOAL_OPTIONS.map((o) => {
-                const val = o.label.toLowerCase().replace(' ', '_');
+              {GOAL_OPTIONS.map(({ label, Icon, desc }) => {
+                const val = label.toLowerCase().replace(' ', '_');
                 return (
                   <button
-                    key={o.label}
-                    className={`ps__select-card ${trainingGoal.toLowerCase() === val || trainingGoal.toLowerCase() === o.label.toLowerCase() ? 'ps__select-card--active' : ''}`}
-                    onClick={() => setTrainingGoal(o.label)}
+                    key={label}
+                    className={`ps__select-card ${trainingGoal.toLowerCase() === val || trainingGoal.toLowerCase() === label.toLowerCase() ? 'ps__select-card--active' : ''}`}
+                    onClick={() => setTrainingGoal(label)}
                   >
-                    <span className="ps__select-card-icon">{o.icon}</span>
-                    <span className="ps__select-card-label">{o.label}</span>
-                    <span className="ps__select-card-desc">{o.desc}</span>
+                    <div className="ps__select-card-icon-wrap">
+                      <Icon size={22} />
+                    </div>
+                    <span className="ps__select-card-label">{label}</span>
+                    <span className="ps__select-card-desc">{desc}</span>
                   </button>
                 );
               })}
+            </div>
+
+          </div>
+        )}
+
+        {/* ── Step 3: Training Split ── */}
+        {step === 3 && (
+          <div className="ps__section">
+            <div className="ps__section-header">
+              <div>
+                <h2 className="ps__section-title">Training Split</h2>
+              </div>
             </div>
 
             <div className="ps__field">
@@ -186,29 +252,83 @@ export function ProfileSetupPage() {
                 {[2, 3, 4, 5, 6].map((d) => (
                   <button
                     key={d}
-                    className={`ps__chip ${trainingDaysPerWeek === d ? 'ps__chip--active' : ''}`}
-                    onClick={() => setTrainingDaysPerWeek(d)}
+                    className={`ps__chip ps__chip--day ${trainingDaysPerWeek === d ? 'ps__chip--active' : ''}`}
+                    onClick={() => {
+                      setTrainingDaysPerWeek(d);
+                      // Auto-select first compatible split if current one doesn't support this day count
+                      const compatible = SPLIT_KEYS.filter((k) =>
+                        Object.keys(SPLITS[k].daysMap).map(Number).includes(d)
+                      );
+                      if (!compatible.includes(selectedSplit) && compatible.length > 0) {
+                        setSelectedSplit(compatible[0]);
+                      }
+                    }}
                   >
                     {d}
                   </button>
                 ))}
               </div>
             </div>
+
+            <div className="ps__field">
+              <label className="ps__label">Choose your split</label>
+              <div className="ps__split-list">
+                {SPLIT_KEYS.filter((key) =>
+                  Object.keys(SPLITS[key].daysMap).map(Number).includes(trainingDaysPerWeek)
+                ).map((key) => {
+                  const split = SPLITS[key];
+                  const supported = Object.keys(split.daysMap).map(Number).sort((a, b) => a - b);
+                  return (
+                    <button
+                      key={key}
+                      className={`ps__split-card ${selectedSplit === key ? 'ps__split-card--active' : ''}`}
+                      onClick={() => setSelectedSplit(key)}
+                    >
+                      <div className="ps__split-card-info">
+                        <span className="ps__split-card-label">{split.label}</span>
+                        <span className="ps__split-card-desc">{split.description}</span>
+                      </div>
+                      {selectedSplit === key && <CheckCircle2 size={18} className="ps__split-card-check" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Week preview */}
+            <div className="ps__field">
+              <label className="ps__label">Your week</label>
+              <div className="ps__week-preview">
+                {getWeekSchedule(selectedSplit, trainingDaysPerWeek).map((day, i) => (
+                  <div key={i} className="ps__week-day" style={{ borderLeftColor: day.color }}>
+                    <span className="ps__week-day-num">Day {i + 1}</span>
+                    <span className="ps__week-day-label">{day.label}</span>
+                    <span className="ps__week-day-focus">{day.focus}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
-        {error && <p className="ps__error">{error}</p>}
+        {error && (
+          <p className="ps__error">⚠️ {error}</p>
+        )}
 
         {/* Navigation */}
         <div className="ps__nav">
           {step > 0 && (
-            <button className="ps__btn-back" onClick={back}>← Back</button>
+            <button className="ps__btn-back" onClick={back}>
+              <ChevronLeft size={18} /> Back
+            </button>
           )}
           {step < STEPS.length - 1 ? (
-            <button className="ps__btn-next" onClick={next}>Continue →</button>
+            <button className="ps__btn-next" onClick={next}>
+              Continue <ChevronRight size={18} />
+            </button>
           ) : (
             <button className="ps__btn-submit" onClick={handleSubmit} disabled={saving}>
-              {saving ? <span className="ps__spinner" /> : '🚀 Start Training'}
+              {saving ? <span className="ps__spinner" /> : <><Rocket size={18} /> Start Training</>}
             </button>
           )}
         </div>

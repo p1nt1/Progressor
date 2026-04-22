@@ -21,7 +21,6 @@ export function useExerciseBuilder() {
           setNumber: ls.setNumber,
           reps: ls.reps,
           weightKg: ls.weightKg,
-          rpe: null,
           completed: false,
         }));
       }
@@ -55,7 +54,6 @@ export function useExerciseBuilder() {
               setNumber: ex.sets.length + 1,
               reps: ex.sets.at(-1)?.reps ?? 0,
               weightKg: ex.sets.at(-1)?.weightKg ?? 0,
-              rpe: null,
               completed: false,
             },
           ],

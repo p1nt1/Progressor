@@ -1,6 +1,6 @@
 export interface AuthUser {
   id: string;
-  cognitoSub: string;
+  googleSub: string;
   email: string;
   displayName: string | null;
 }
@@ -17,7 +17,6 @@ export interface WorkoutSet {
   setNumber: number;
   reps: number | null;
   weightKg: number | null;
-  rpe?: number | null;
   completed: boolean;
 }
 
@@ -40,11 +39,4 @@ export interface Workout {
   exercises: WorkoutExercise[];
 }
 
-export interface ProgressionSuggestion {
-  exerciseId: number;
-  exerciseName: string;
-  currentWeight: number;
-  suggestedWeight: number;
-  reason: string;
-}
 

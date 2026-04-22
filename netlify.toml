@@ -1,0 +1,9 @@
+[build]
+  base    = "client"
+  command = "npm run build && echo \"/api/*  ${RAILWAY_API_URL}/api/:splat  200\" > dist/_redirects && echo \"/*  /index.html  200\" >> dist/_redirects"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+

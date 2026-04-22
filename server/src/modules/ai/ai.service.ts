@@ -4,7 +4,10 @@ import { query } from '../../db/pool';
 
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
-export async function generateWorkoutPlan(userId: string, type: string) {
+const MODEL_PLAN    = 'gpt-4.1-mini'; // plan generation — large context, needs quality
+const MODEL_REVIEW  = 'gpt-4.1-mini'; // workout comparison — benefits from better analysis
+
+export async function generateWorkoutPlan(userId: string, type: string, focus?: string) {
   // Get user's recent history
   const history = await query(
     `SELECT e.name, e.muscle_group, s.reps, s.weight_kg, w.started_at
@@ -12,7 +15,7 @@ export async function generateWorkoutPlan(userId: string, type: string) {
      JOIN workout_exercises we ON we.id = s.workout_exercise_id
      JOIN exercises e ON e.id = we.exercise_id
      JOIN workouts w ON w.id = we.workout_id
-     WHERE w.user_id = $1 AND w.completed_at IS NOT NULL
+     WHERE w.user_id = $1 AND w.completed_at IS NOT NULL AND s.completed = true
      ORDER BY w.started_at DESC LIMIT 50`,
     [userId]
   );
@@ -50,6 +53,7 @@ export async function generateWorkoutPlan(userId: string, type: string) {
     : 'No profile data available';
 
   const prompt = `You are an expert strength coach. Generate a ${type} workout plan.
+${focus ? `\nTarget focus for this session: ${focus}` : ''}
 
 User profile: ${profileSummary}
 
@@ -83,7 +87,7 @@ Respond ONLY with valid JSON in this format:
 }`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: MODEL_PLAN,
     messages: [
       { role: 'system', content: 'You are a knowledgeable strength coach. Always respond with valid JSON only.' },
       { role: 'user', content: prompt },
@@ -100,115 +104,6 @@ Respond ONLY with valid JSON in this format:
   } catch {
     return { error: 'Failed to parse AI response', raw: content };
   }
-}
-
-export async function explainProgression(userId: string, exerciseId: number) {
-  const history = await query(
-    `SELECT w.started_at, s.set_number, s.reps, s.weight_kg, s.completed
-     FROM sets s
-     JOIN workout_exercises we ON we.id = s.workout_exercise_id
-     JOIN workouts w ON w.id = we.workout_id
-     WHERE w.user_id = $1 AND we.exercise_id = $2 AND w.completed_at IS NOT NULL
-     ORDER BY w.started_at DESC LIMIT 30`,
-    [userId, exerciseId]
-  );
-
-  const exercise = await query(`SELECT name FROM exercises WHERE id = $1`, [exerciseId]);
-  console.log(exercise.rows)
-
-  const prompt = `Analyze this training history for ${exercise.rows[0]?.name || 'unknown exercise'} and provide coaching advice.
-
-History (most recent first):
-${JSON.stringify(history.rows)}
-
-Provide:
-1. Performance trend analysis
-2. Whether the user should increase weight, deload, or maintain
-3. Specific actionable advice
-4. Encouragement
-
-Keep it concise (3-4 sentences). Be specific with numbers.`;
-
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: 'You are a supportive and knowledgeable strength coach.' },
-      { role: 'user', content: prompt },
-    ],
-    temperature: 0.7,
-    max_tokens: 300,
-  });
-
-  return {
-    exerciseName: exercise.rows[0]?.name,
-    explanation: response.choices[0]?.message?.content || 'No analysis available.',
-  };
-}
-
-export async function getWeeklySummary(userId: string): Promise<string> {
-  // Get last 7 days of workouts
-  const workoutsResult = await query(
-    `SELECT w.name, w.type, w.started_at, w.completed_at
-     FROM workouts w
-     WHERE w.user_id = $1 AND w.started_at >= NOW() - INTERVAL '7 days'
-     ORDER BY w.started_at DESC`,
-    [userId]
-  );
-
-  // Get sets from last 7 days
-  const setsResult = await query(
-    `SELECT e.name as exercise, e.muscle_group, s.reps, s.weight_kg, s.completed, w.started_at
-     FROM sets s
-     JOIN workout_exercises we ON we.id = s.workout_exercise_id
-     JOIN exercises e ON e.id = we.exercise_id
-     JOIN workouts w ON w.id = we.workout_id
-     WHERE w.user_id = $1 AND w.started_at >= NOW() - INTERVAL '7 days' AND w.completed_at IS NOT NULL
-     ORDER BY w.started_at DESC, we."order", s.set_number`,
-    [userId]
-  );
-
-  // Get user profile for context
-  const profileResult = await query(
-    `SELECT height_cm, weight_kg, sex, experience_level, training_goal, training_days_per_week
-     FROM profiles WHERE user_id = $1`,
-    [userId]
-  );
-
-  if (workoutsResult.rows.length === 0) {
-    return 'No workouts recorded this week. Get to the gym and start tracking to receive personalised coaching insights!';
-  }
-
-  const profile = profileResult.rows[0] || {};
-
-  const prompt = `You are a supportive fitness coach. Provide a short weekly progress summary for this user.
-
-User profile: ${JSON.stringify(profile)}
-
-Workouts this week (${workoutsResult.rows.length} sessions):
-${JSON.stringify(workoutsResult.rows)}
-
-Sets performed:
-${JSON.stringify(setsResult.rows)}
-
-Write a brief, encouraging 3-5 sentence summary covering:
-- How many sessions they completed vs their target (${profile.training_days_per_week || '?'} days/week)
-- Key highlights (heaviest lifts, most volume, muscle groups trained)
-- One specific tip for next week
-- Motivational closing
-
-Be conversational and specific with numbers. Don't use bullet points.`;
-
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: 'You are a supportive, knowledgeable fitness coach. Keep responses concise and motivating.' },
-      { role: 'user', content: prompt },
-    ],
-    temperature: 0.7,
-    max_tokens: 250,
-  });
-
-  return response.choices[0]?.message?.content || 'Unable to generate summary at this time.';
 }
 
 /**
@@ -232,28 +127,32 @@ function detectWorkoutType(exercises: { muscle_group: string }[]): string {
   if (hasLegs && upperCount === 0) return 'legs';
   if ((hasChest || hasShoulders) && !hasBack && !hasLegs) return 'push';
   if (hasBack && !hasChest && !hasLegs) return 'pull';
+  if (hasChest && hasBack && !hasLegs) return 'upper';
+  if ((hasShoulders || hasArms) && !hasChest && !hasBack && !hasLegs) return 'push';
   if (upperCount > 0 && lowerCount === 0) return 'upper';
   if (lowerCount > 0 && upperCount === 0) return 'lower';
-  return 'custom';
+  return 'full body';
 }
 
 /**
  * Review a completed workout by comparing it to the previous workout of the same detected type.
+ * Diffs (kgDiff, repsDiff, verdict) are computed server-side from raw data so they are always
+ * consistent. The AI only writes the narrative (summary, comments, tip).
  */
-export async function reviewWorkout(userId: string, workoutId: string) {
+export async function reviewWorkout(userId: string, workoutId: string, feedbackRating?: number) {
   // Get current workout details
   const currentResult = await query(
     `SELECT e.name as exercise_name, e.muscle_group, s.set_number, s.reps, s.weight_kg, s.completed
      FROM sets s
      JOIN workout_exercises we ON we.id = s.workout_exercise_id
      JOIN exercises e ON e.id = we.exercise_id
-     WHERE we.workout_id = $1
+     WHERE we.workout_id = $1 AND s.completed = true
      ORDER BY we."order", s.set_number`,
     [workoutId]
   );
 
   if (currentResult.rows.length === 0) {
-    return { type: 'custom', review: 'No exercise data found for this workout.' };
+    return { type: 'push', review: 'No exercise data found for this workout.' };
   }
 
   // Detect type
@@ -311,51 +210,107 @@ export async function reviewWorkout(userId: string, workoutId: string) {
      JOIN workout_exercises we ON we.workout_id = w.id
      JOIN exercises e ON e.id = we.exercise_id
      JOIN sets s ON s.workout_exercise_id = we.id
-     WHERE w.id = $1
+     WHERE w.id = $1 AND s.completed = true
      ORDER BY we."order", s.set_number`,
     [prevWorkoutId]
   );
 
-  const prompt = `You are an expert strength coach. Review this workout and compare it to the previous session of the same type.
+  // ── Compute diffs server-side (verdict is deterministic, not AI-guessed) ──
+  type SetRow = { exercise_name: string; reps: number; weight_kg: number };
 
-Workout type: ${detectedType}
-
-Current workout:
-${JSON.stringify(currentResult.rows)}
-
-Previous ${detectedType} workout:
-${prevResult.rows.length > 0 ? JSON.stringify(prevResult.rows) : 'No previous workout of this type found.'}
-
-Provide a JSON response with this format:
-{
-  "summary": "A 2-3 sentence overall review comparing to previous",
-  "exerciseReviews": [
-    {
-      "exerciseName": "exercise name",
-      "verdict": "improved" | "maintained" | "declined",
-      "comment": "One sentence about performance change"
+  const summarise = (rows: SetRow[]) => {
+    const map = new Map<string, { totalReps: number; maxWeight: number }>();
+    for (const r of rows) {
+      const cur = map.get(r.exercise_name) ?? { totalReps: 0, maxWeight: 0 };
+      cur.totalReps += Number(r.reps);
+      cur.maxWeight  = Math.max(cur.maxWeight, Number(r.weight_kg));
+      map.set(r.exercise_name, cur);
     }
-  ],
-  "tip": "One actionable tip for next session"
-}
+    return map;
+  };
 
-Be specific with numbers. Compare weights, reps, and volume.`;
+  const currentMap = summarise(currentResult.rows);
+  const prevMap    = summarise(prevResult.rows);
+
+  type ExerciseDiff = {
+    exerciseName: string;
+    verdict: 'improved' | 'maintained' | 'declined' | 'new';
+    kgDiff: number | null;
+    repsDiff: number | null;
+  };
+
+  const exerciseDiffs: ExerciseDiff[] = [];
+  for (const [name, cur] of currentMap) {
+    const prev = prevMap.get(name);
+    if (!prev) {
+      exerciseDiffs.push({ exerciseName: name, verdict: 'new', kgDiff: null, repsDiff: null });
+      continue;
+    }
+    const kgDiff   = Math.round((cur.maxWeight - prev.maxWeight) * 10) / 10;
+    const repsDiff = cur.totalReps - prev.totalReps;
+    // Weight takes priority; reps are tiebreaker
+    const verdict: 'improved' | 'maintained' | 'declined' =
+      kgDiff > 0 || (kgDiff === 0 && repsDiff > 0) ? 'improved' :
+      kgDiff < 0 || (kgDiff === 0 && repsDiff < 0) ? 'declined' : 'maintained';
+    exerciseDiffs.push({ exerciseName: name, verdict, kgDiff, repsDiff });
+  }
+
+  // ── AI writes narrative only — numbers come from exerciseDiffs above ──────
+  const FEEDBACK_MAP: Record<number, string> = {
+    1: 'The user felt awful — extremely tough session, possible fatigue or pain.',
+    2: 'The user felt rough — struggled through the workout, low energy.',
+    3: 'The user felt okay — average session, nothing special.',
+    4: 'The user felt good — strong and energised during the session.',
+    5: 'The user felt great — peak performance, everything clicked.',
+  };
+  const feedbackLine = feedbackRating && FEEDBACK_MAP[feedbackRating]
+    ? `\nUser self-reported feeling: ${FEEDBACK_MAP[feedbackRating]} (${feedbackRating}/5)\nFactor this into your summary, encouragement tone, and tip.`
+    : '';
+
+  const prompt = `You are a motivating strength coach. Write punchy, engaging review text based on these pre-computed exercise stats.
+
+Workout type: ${detectedType}${feedbackLine}
+Exercise diffs (use these exact numbers in your comments):
+${JSON.stringify(exerciseDiffs)}
+
+Current workout raw data: ${JSON.stringify(currentResult.rows)}
+Previous workout raw data: ${JSON.stringify(prevResult.rows)}
+
+Respond ONLY with valid JSON:
+{
+  "summary": "2-3 engaging sentences on overall session vs last time. Reference standout lifts or total volume. Be motivating.",
+  "exerciseComments": {
+    "<exerciseName>": "One punchy sentence referencing the actual numbers from the diff"
+  },
+  "tip": "One specific tip with a concrete target for next session (e.g. 'Push Barbell Squat to 90kg — you are ready')"
+}`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: MODEL_REVIEW,
     messages: [
       { role: 'system', content: 'You are a supportive strength coach. Always respond with valid JSON only.' },
       { role: 'user', content: prompt },
     ],
     temperature: 0.7,
-    max_tokens: 500,
+    max_tokens: 600,
   });
 
   const content = response.choices[0]?.message?.content || '{}';
+  const cleaned = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
   try {
-    const review = JSON.parse(content);
-    return { type: detectedType, review };
+    const narrative = JSON.parse(cleaned);
+    const exerciseReviews = exerciseDiffs.map((d) => ({
+      exerciseName: d.exerciseName,
+      verdict:      d.verdict,
+      kgDiff:       d.kgDiff,
+      repsDiff:     d.repsDiff,
+      comment:      narrative.exerciseComments?.[d.exerciseName] ?? '',
+    }));
+    return {
+      type: detectedType,
+      review: { summary: narrative.summary, exerciseReviews, tip: narrative.tip },
+    };
   } catch {
-    return { type: detectedType, review: { summary: content, exerciseReviews: [], tip: '' } };
+    return { type: detectedType, review: { summary: cleaned, exerciseReviews: [], tip: '' } };
   }
 }

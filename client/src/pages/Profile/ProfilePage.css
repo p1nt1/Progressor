@@ -18,9 +18,9 @@
 }
 
 .profile-page__header-avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
+  width: var(--size-avatar);
+  height: var(--size-avatar);
+  border-radius: var(--radius-full);
   overflow: hidden;
   background: var(--color-primary);
   display: flex;
@@ -29,7 +29,7 @@
   flex-shrink: 0;
   font-weight: var(--font-bold);
   font-size: var(--text-lg);
-  color: #fff;
+  color: var(--color-white);
 }
 
 .profile-page__header-avatar img {
@@ -47,16 +47,18 @@
 .profile-page__header-email {
   font-size: var(--text-xs);
   color: var(--color-text-secondary);
-  margin-top: 2px;
+  margin-top: var(--space-1);
 }
 
 /* ── AI weekly summary card ─────────────────────────── */
 .profile-page__ai-card {
-  background: linear-gradient(135deg, #312e81, #4338ca);
+  background: linear-gradient(135deg, var(--color-ai-gradient-from), var(--color-ai-gradient-to));
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   position: relative;
   overflow: hidden;
+  min-height: 120px;
+  contain: layout style;
 }
 
 .profile-page__ai-card::before {
@@ -66,8 +68,9 @@
   right: -30%;
   width: 180px;
   height: 180px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 50%;
+  background: var(--white-6);
+  border-radius: var(--radius-full);
+  pointer-events: none;
 }
 
 .profile-page__ai-header {
@@ -78,22 +81,23 @@
   font-weight: var(--font-bold);
   font-size: var(--text-sm);
   position: relative;
-  color: #fff;
+  color: var(--color-white);
 }
 
 .profile-page__ai-body {
-  color: #c7d2fe;
+  color: var(--color-ai-text);
   font-size: var(--text-sm);
   line-height: var(--leading-normal);
   position: relative;
 }
 
 .profile-page__ai-loading {
-  color: #a5b4fc;
+  color: var(--color-ai-muted);
   font-size: var(--text-sm);
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-height: var(--size-avatar-sm);
 }
 
 @keyframes pulse {
@@ -105,36 +109,6 @@
   animation: pulse 1.5s infinite;
 }
 
-/* ── Stats row ───────────────────────────────────────── */
-.profile-page__stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-2);
-}
-
-.profile-page__stat {
-  background: var(--color-surface-1);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4) var(--space-2);
-  text-align: center;
-  border: 1px solid var(--color-border-subtle);
-}
-
-.profile-page__stat-value {
-  font-size: var(--text-lg);
-  font-weight: var(--font-extrabold);
-  color: var(--color-text-primary);
-  margin-bottom: var(--space-1);
-  letter-spacing: var(--tracking-tight);
-}
-
-.profile-page__stat-label {
-  font-size: var(--text-xs);
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-wider);
-  font-weight: var(--font-medium);
-}
 
 /* ── Section cards ───────────────────────────────────── */
 .profile-page__section {
@@ -142,6 +116,7 @@
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   border: 1px solid var(--color-border-subtle);
+  contain: layout style;
 }
 
 .profile-page__section-title {
@@ -231,7 +206,7 @@
 
 .profile-page__edit-btn--primary {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-white);
 }
 
 .profile-page__edit-btn--primary:hover {
@@ -253,41 +228,13 @@
   background: var(--color-surface-3);
 }
 
-/* ── 1RM estimates grid ──────────────────────────────── */
-.profile-page__1rm-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-2);
-}
-
-.profile-page__1rm-item {
-  background: var(--color-surface-2);
-  border-radius: var(--radius-md);
-  padding: var(--space-3);
-  text-align: center;
-  border: 1px solid var(--color-border-subtle);
-}
-
-.profile-page__1rm-value {
-  font-size: var(--text-base);
-  font-weight: var(--font-extrabold);
-  color: var(--color-primary);
-  letter-spacing: var(--tracking-tight);
-}
-
-.profile-page__1rm-name {
-  font-size: var(--text-xs);
-  color: var(--color-text-secondary);
-  margin-top: var(--space-1);
-  line-height: 1.3;
-}
 
 /* ── Goal badge ──────────────────────────────────────── */
 .profile-page__goal-badge {
   background: var(--color-primary);
-  color: #fff !important;
-  padding: 2px var(--space-2);
-  border-radius: var(--radius-full, 9999px);
+  color: var(--color-white) !important;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
   font-size: var(--text-xs) !important;
   font-weight: var(--font-semibold) !important;
   text-transform: capitalize !important;
@@ -305,9 +252,9 @@
   width: 100%;
   padding: var(--space-3);
   border-radius: var(--radius-md);
-  border: 1px solid #ef4444;
+  border: 1px solid var(--color-danger);
   background: transparent;
-  color: #ef4444;
+  color: var(--color-danger);
   font-weight: var(--font-bold);
   font-size: var(--text-sm);
   cursor: pointer;
@@ -316,7 +263,6 @@
 }
 
 .profile-page__logout-btn:hover {
-  background: #ef4444;
-  color: #fff;
+  background: var(--color-danger);
+  color: var(--color-white);
 }
-

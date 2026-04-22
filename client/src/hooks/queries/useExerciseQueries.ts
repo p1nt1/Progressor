@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { exercises as exercisesApi } from '../../api/client';
 import type { Exercise } from '../../types';
 
@@ -18,3 +18,15 @@ export function useExercises() {
   });
 }
 
+export function useCreateExercise() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { name: string; muscleGroup: string; isCompound: boolean }) => {
+      const res = await exercisesApi.create(data);
+      return res.data as Exercise;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: exerciseKeys.all });
+    },
+  });
+}

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import { useAppSelector } from './store/hooks';
-import { useProfile } from './hooks/queries';
+import { useBootstrap, useProfile } from './hooks/queries';
 import { LoginPage } from './pages/Login/LoginPage.tsx';
 import { ProfileSetupPage } from './pages/ProfileSetup/ProfileSetupPage.tsx';
 import { TopNav } from './components/TopNav/TopNav.tsx';
@@ -19,7 +19,12 @@ function App() {
   const { activePlan } = useAppSelector((s) => s.workout);
   const wasAuthenticated = useRef(isAuthenticated);
 
-  const { data: profile, isLoading: profileLoading, isFetched: profileFetched } = useProfile(isAuthenticated);
+  // Single bootstrap request fetches all initial data and seeds the React Query cache.
+  // useProfile (and other queries) will read from that cache without extra network calls.
+  const { isLoading: bootstrapLoading, isFetched: bootstrapFetched } = useBootstrap(isAuthenticated);
+  const { data: profile } = useProfile(bootstrapFetched);
+  const profileLoading = bootstrapLoading;
+  const profileFetched = bootstrapFetched;
   const setupComplete = profileFetched && profile !== null && profile !== undefined;
 
   useEffect(() => {

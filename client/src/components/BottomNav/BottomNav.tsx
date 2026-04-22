@@ -1,21 +1,22 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAppSelector } from '../../store/hooks.ts';
+import { useAuth } from '../../hooks/useAuth.tsx';
+import { Home, PlusCircle, ClipboardList } from 'lucide-react';
 import './BottomNav.css';
 
 const NAV_ITEMS = [
-  { path: '/',        icon: '🏠', label: 'Home' },
-  { path: '/workout', icon: '➕', label: 'Create' },
-  { path: '/history', icon: '📋', label: 'History' },
-  { path: '/profile', icon: null, label: 'Profile' },
+  { path: '/',        icon: Home,          label: 'Home' },
+  { path: '/workout', icon: PlusCircle,    label: 'Create' },
+  { path: '/history', icon: ClipboardList, label: 'History' },
+  { path: '/profile', icon: null,          label: 'Profile' },
 ];
 
 export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const user = useAppSelector((s) => s.auth.user);
+  const { user } = useAuth();
 
-  const initials = user?.name
-    ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+  const initials = user?.displayName
+    ? user.displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
     : '?';
 
   return (
@@ -29,14 +30,14 @@ export function BottomNav() {
             <img
               className={`bottom-nav__avatar-img ${isActive ? 'bottom-nav__avatar-img--active' : ''}`}
               src={user.picture}
-              alt={user.name}
+              alt={user.displayName ?? ''}
               referrerPolicy="no-referrer"
             />
           ) : (
             <span className="bottom-nav__avatar-placeholder">{initials}</span>
           )
         ) : (
-          <span className="bottom-nav__icon">{item.icon}</span>
+          item.icon && <item.icon size={20} className="bottom-nav__icon" />
         );
 
         return (
@@ -53,4 +54,3 @@ export function BottomNav() {
     </nav>
   );
 }
-

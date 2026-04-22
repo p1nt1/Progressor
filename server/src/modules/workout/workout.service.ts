@@ -1,9 +1,8 @@
-import { query } from '../../db/pool';
-import { Workout } from '../../types';
+import { pool, query } from '../../db/pool';
+import type { Workout } from '../../types';
 
 export async function createWorkout(workout: Workout): Promise<string> {
-  const client = (await import('../../db/pool')).pool;
-  const conn = await client.connect();
+  const conn = await pool.connect();
 
   try {
     await conn.query('BEGIN');
@@ -23,9 +22,9 @@ export async function createWorkout(workout: Workout): Promise<string> {
 
       for (const set of ex.sets) {
         await conn.query(
-          `INSERT INTO sets (workout_exercise_id, set_number, reps, weight_kg, rpe, completed)
-           VALUES ($1, $2, $3, $4, $5, $6)`,
-          [weId, set.setNumber, set.reps, set.weightKg, set.rpe || null, set.completed]
+          `INSERT INTO sets (workout_exercise_id, set_number, reps, weight_kg, completed)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [weId, set.setNumber, set.reps, set.weightKg, set.completed]
         );
       }
     }
@@ -75,7 +74,6 @@ export async function getWorkoutById(workoutId: string, userId: string) {
                   'set_number', s.set_number,
                   'reps', s.reps,
                   'weight_kg', s.weight_kg,
-                  'rpe', s.rpe,
                   'completed', s.completed
                 ) ORDER BY s.set_number
               ) FILTER (WHERE s.id IS NOT NULL),
@@ -103,7 +101,7 @@ export async function completeWorkout(workoutId: string, userId: string) {
 
 export async function getExerciseHistory(userId: string, exerciseId: number, limit = 10) {
   const result = await query(
-    `SELECT w.started_at, s.set_number, s.reps, s.weight_kg, s.rpe, s.completed
+    `SELECT w.started_at, s.set_number, s.reps, s.weight_kg, s.completed
      FROM sets s
      JOIN workout_exercises we ON we.id = s.workout_exercise_id
      JOIN workouts w ON w.id = we.workout_id
@@ -152,73 +150,6 @@ export async function getLastWeightsForExercises(
   return map;
 }
 
-/** Returns progression log entries (weight increase milestones) for a user. */
-export async function getProgressionLog(userId: string, exerciseId?: number, limit = 50) {
-  const params: any[] = [userId];
-  let filter = '';
-  if (exerciseId) {
-    params.push(exerciseId);
-    filter = `AND pl.exercise_id = $${params.length}`;
-  }
-  params.push(limit);
-
-  const result = await query(
-    `SELECT pl.id, pl.exercise_id, e.name AS exercise_name,
-            pl.previous_weight, pl.new_weight, pl.reason, pl.created_at,
-            e.is_compound,
-            -- next target: new_weight + increment depending on compound/isolation
-            ROUND((pl.new_weight + CASE WHEN e.is_compound THEN 2.5 ELSE 1.25 END)::numeric, 2) AS next_target_weight,
-            -- is_current: new_weight matches the most recent weight lifted for this exercise
-            pl.new_weight = (
-              SELECT s.weight_kg
-              FROM sets s
-              JOIN workout_exercises we ON we.id = s.workout_exercise_id
-              JOIN workouts w ON w.id = we.workout_id
-              WHERE w.user_id = $1
-                AND we.exercise_id = pl.exercise_id
-                AND w.completed_at IS NOT NULL
-                AND s.completed = true
-              ORDER BY w.started_at DESC, s.weight_kg DESC
-              LIMIT 1
-            ) AS is_current
-     FROM progression_log pl
-     JOIN exercises e ON e.id = pl.exercise_id
-     WHERE pl.user_id = $1 ${filter}
-     ORDER BY pl.created_at DESC
-     LIMIT $${params.length}`,
-    params
-  );
-  return result.rows;
-}
-
-/** Returns per-exercise milestone counts and latest progression date. */
-export async function getProgressionSummary(userId: string) {
-  const result = await query(
-    `SELECT e.id AS exercise_id, e.name AS exercise_name,
-            COUNT(pl.id) AS milestone_count,
-            MIN(pl.previous_weight) AS starting_weight,
-            (
-              SELECT s.weight_kg
-              FROM sets s
-              JOIN workout_exercises we ON we.id = s.workout_exercise_id
-              JOIN workouts w ON w.id = we.workout_id
-              WHERE w.user_id = $1
-                AND we.exercise_id = e.id
-                AND w.completed_at IS NOT NULL
-                AND s.completed = true
-              ORDER BY w.started_at DESC, s.weight_kg DESC
-              LIMIT 1
-            ) AS current_weight,
-            MAX(pl.created_at) AS last_progression_at
-     FROM progression_log pl
-     JOIN exercises e ON e.id = pl.exercise_id
-     WHERE pl.user_id = $1
-     GROUP BY e.id, e.name
-     ORDER BY last_progression_at DESC`,
-    [userId]
-  );
-  return result.rows;
-}
 
 /** Returns total completed workouts, weekly streak, and top compound 1RM estimates. */
 export async function getWorkoutStats(userId: string) {
@@ -244,7 +175,7 @@ export async function getWorkoutStats(userId: string) {
   thisMonday.setUTCDate(now.getUTCDate() - (dow === 0 ? 6 : dow - 1));
   thisMonday.setUTCHours(0, 0, 0, 0);
 
-  const weeks: number[] = weeksResult.rows.map((r: any) => new Date(r.week_start).getTime());
+  const weeks: number[] = weeksResult.rows.map((r: { week_start: string }) => new Date(r.week_start).getTime());
   let streak = 0;
   let expected = thisMonday.getTime();
 
@@ -282,9 +213,9 @@ export async function getWorkoutStats(userId: string) {
   return {
     totalWorkouts: parseInt(totalResult.rows[0].total, 10),
     weekStreak: streak,
-    oneRMs: oneRMResult.rows.map((r: any) => ({
-      exerciseId: r.id as number,
-      exerciseName: r.name as string,
+    oneRMs: oneRMResult.rows.map((r: { id: number; name: string; estimated_1rm: string }) => ({
+      exerciseId: r.id,
+      exerciseName: r.name,
       estimated1RM: parseFloat(r.estimated_1rm),
     })),
   };

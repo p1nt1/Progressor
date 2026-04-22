@@ -18,10 +18,48 @@
   letter-spacing: var(--tracking-tight);
   cursor: pointer;
   user-select: none;
+  display: flex;
+  align-items: center;
 }
 
 .topnav__logo-icon {
   margin-right: var(--space-2);
+  color: var(--icon-brand);
+}
+
+/* ── Theme pill toggle ──────────────────────────────── */
+.topnav__theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: 3px;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.topnav__theme-toggle:hover {
+  border-color: var(--icon-theme-btn);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+
+.topnav__theme-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  color: var(--color-text-tertiary);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.topnav__theme-option--active {
+  background: var(--icon-theme-btn);
+  color: var(--color-white);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
 }
 
 .topnav__actions {
@@ -30,28 +68,10 @@
   gap: var(--space-2);
 }
 
-.topnav__theme-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-1);
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
-  line-height: 1;
-}
-
-.topnav__theme-btn:hover {
-  background: var(--color-surface-2);
-}
 
 .topnav__avatar-btn {
-  width: 36px;
-  height: 36px;
+  width: var(--size-icon-lg);
+  height: var(--size-icon-lg);
   border-radius: var(--radius-full);
   border: 2px solid var(--color-border);
   background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
@@ -78,7 +98,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--color-white);
   font-weight: var(--font-bold);
   font-size: var(--text-sm);
 }

@@ -10,7 +10,7 @@ export async function getTemplates(userId: string) {
   return result.rows;
 }
 
-export async function createTemplate(userId: string, name: string, type: string, exercises: any[]) {
+export async function createTemplate(userId: string, name: string, type: string, exercises: unknown[]) {
   // Upsert — if same name exists for user, update it
   const result = await query(
     `INSERT INTO workout_templates (user_id, name, type, exercises)

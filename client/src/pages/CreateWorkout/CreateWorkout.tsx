@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useExercises, useSaveTemplate } from '../../hooks/queries';
+import { useExercises, useSaveTemplate, useCreateExercise } from '../../hooks/queries';
 import { useExerciseBuilder } from '../../hooks/useExerciseBuilder';
 import { ai } from '../../api/client.ts';
 import { WorkoutType, MuscleGroup, WORKOUT_TYPES } from '../../helpers/workoutTypes.ts';
+import { mapToActiveExercises } from '../../helpers/workout.helpers.ts';
 import { WorkoutBuilder } from '../../components/WorkoutBuilder/WorkoutBuilder.tsx';
 import { ExercisePreviewItem } from '../../components/ExercisePreviewItem/ExercisePreviewItem.tsx';
+import { Sparkles, Wrench, Bot, User, ClipboardList, Dumbbell, TrendingUp, Save, CheckCircle2 } from 'lucide-react';
 import './CreateWorkout.css';
 
 
@@ -12,6 +14,7 @@ import './CreateWorkout.css';
 export function CreateWorkout() {
   const { data: exerciseList = [] } = useExercises();
   const saveTemplateMutation = useSaveTemplate();
+  const createExerciseMutation = useCreateExercise();
   const templateSaving = saveTemplateMutation.isPending;
   const { selected: selectedExercises, addExercise, removeExercise, updateSet: updateCustomSet, addSet: addSetToExercise, reset: resetExercises } = useExerciseBuilder();
 
@@ -23,6 +26,8 @@ export function CreateWorkout() {
 
   // Custom workout state
   const [customName, setCustomName] = useState('');
+  const [customNameError, setCustomNameError] = useState(false);
+  const [customType, setCustomType] = useState<WorkoutType>(WorkoutType.Push);
   const [muscleFilter, setMuscleFilter] = useState<MuscleGroup>(MuscleGroup.All);
 
 
@@ -49,33 +54,29 @@ export function CreateWorkout() {
     if (!aiPlan) return;
     const planName = aiPlan.name || 'AI Workout';
     const planType = aiPlan.type || type;
-    const exercises = (aiPlan.exercises || []).map((ex: any, i: number) => ({
-      exerciseName: ex.exerciseName,
-      exerciseId: ex.exerciseId,
-      order: ex.order ?? i + 1,
-      sets: (ex.sets || []).map((s: any) => ({
-        setNumber: s.setNumber,
-        reps: s.reps,
-        weightKg: s.weightKg,
-        completed: s.completed ?? false,
-      })),
-    }));
+    const exercises = mapToActiveExercises(aiPlan.exercises || []);
     saveTemplateMutation.mutate({ name: planName, type: planType, exercises });
     setAiPlan(null);
     setSaved(true);
   };
 
   const handleSaveCustom = () => {
-    if (selectedExercises.length === 0 || !customName.trim()) return;
+    if (selectedExercises.length === 0) return;
+    if (!customName.trim()) {
+      setCustomNameError(true);
+      return;
+    }
+    setCustomNameError(false);
     const exercises = selectedExercises.map((ex, i) => ({
       exerciseName: ex.exerciseName,
       exerciseId: ex.exerciseId,
       order: i + 1,
       sets: ex.sets,
     }));
-    saveTemplateMutation.mutate({ name: customName.trim(), type: WorkoutType.Custom, exercises });
+    saveTemplateMutation.mutate({ name: customName.trim(), type: customType, exercises });
     setCustomName('');
     resetExercises();
+    setCustomNameError(false);
     setSaved(true);
   };
 
@@ -85,7 +86,7 @@ export function CreateWorkout() {
       <h2 className="workout-form__title">Create Workout Plan</h2>
 
       {saved && (
-        <div className="workout-form__saved-toast">✅ Workout saved! Go to Home to start it.</div>
+        <div className="workout-form__saved-toast"><CheckCircle2 size={15} /> Workout saved! Go to Home to start it.</div>
       )}
 
       {/* Mode toggle */}
@@ -94,13 +95,13 @@ export function CreateWorkout() {
           className={`workout-form__mode-btn ${mode === 'ai' ? 'workout-form__mode-btn--active' : ''}`}
           onClick={() => setMode('ai')}
         >
-          ✨ AI Generate
+          <Sparkles size={15} /> AI Generate
         </button>
         <button
           className={`workout-form__mode-btn ${mode === 'custom' ? 'workout-form__mode-btn--active' : ''}`}
           onClick={() => setMode('custom')}
         >
-          🛠 Build Custom
+          <Wrench size={15} /> Build Custom
         </button>
       </div>
 
@@ -110,31 +111,31 @@ export function CreateWorkout() {
           {/* How it works info card */}
           <div className="ai-info-card">
             <div className="ai-info-card__header">
-              <span className="ai-info-card__icon">🤖</span>
+              <Bot size={18} className="ai-info-card__icon" />
               <span className="ai-info-card__title">How AI generation works</span>
             </div>
             <ul className="ai-info-card__list">
               <li className="ai-info-card__item">
-                <span className="ai-info-card__bullet">👤</span>
+                <User size={15} className="ai-info-card__bullet" />
                 <span>Your <strong>profile</strong> — age, weight, experience level and training goal shape exercise selection and rep ranges</span>
               </li>
               <li className="ai-info-card__item">
-                <span className="ai-info-card__bullet">📋</span>
+                <ClipboardList size={15} className="ai-info-card__bullet" />
                 <span>Your <strong>recent sessions</strong> — the last 50 sets you logged are used to suggest weights you can actually lift</span>
               </li>
               <li className="ai-info-card__item">
-                <span className="ai-info-card__bullet">🏋️</span>
+                <Dumbbell size={15} className="ai-info-card__bullet" />
                 <span>The <strong>workout type</strong> you pick below determines which muscle groups are targeted</span>
               </li>
               <li className="ai-info-card__item">
-                <span className="ai-info-card__bullet">📈</span>
+                <TrendingUp size={15} className="ai-info-card__bullet" />
                 <span>Compound lifts always come first, isolation movements finish the session</span>
               </li>
             </ul>
           </div>
 
           <div className="workout-form__types">
-            {WORKOUT_TYPES.filter((t) => t !== WorkoutType.Custom).map((t) => (
+            {WORKOUT_TYPES.map((t) => (
               <button
                 key={t}
                 onClick={() => setType(t)}
@@ -145,12 +146,10 @@ export function CreateWorkout() {
             ))}
           </div>
 
-          <button
-            onClick={handleGenerate}
-            disabled={generating}
-            className="workout-form__generate-btn"
-          >
-            {generating ? '🤖 Generating...' : '✨ Generate AI Workout'}
+          <button onClick={handleGenerate} disabled={generating} className="workout-form__generate-btn">
+            {generating
+              ? <><Bot size={16} /> Generating...</>
+              : <><Sparkles size={16} /> Generate AI Workout</>}
           </button>
 
           {aiPlan && (
@@ -168,7 +167,7 @@ export function CreateWorkout() {
                 ))}
               </div>
               <button className="workout-form__save-btn" onClick={handleSaveAiPlan} disabled={templateSaving}>
-                💾 Save Workout Plan
+                <Save size={15} /> Save Workout Plan
               </button>
             </div>
           )}
@@ -179,11 +178,14 @@ export function CreateWorkout() {
       {mode === 'custom' && (
         <div className="workout-form__custom">
           <input
-            className="workout-form__custom-name"
+            className={`workout-form__custom-name${customNameError ? ' workout-form__custom-name--error' : ''}`}
             placeholder="Workout name (required)"
             value={customName}
-            onChange={(e) => setCustomName(e.target.value)}
+            onChange={(e) => { setCustomName(e.target.value); if (e.target.value.trim()) setCustomNameError(false); }}
           />
+          {customNameError && (
+            <p className="workout-form__custom-name-error">Please enter a workout name before saving.</p>
+          )}
 
           <WorkoutBuilder
             exerciseList={exerciseList}
@@ -194,15 +196,12 @@ export function CreateWorkout() {
             onRemoveExercise={removeExercise}
             onUpdateSet={updateCustomSet}
             onAddSet={addSetToExercise}
+            onCreateExercise={(data) => createExerciseMutation.mutate(data)}
           />
 
           {selectedExercises.length > 0 && (
-            <button
-              className="workout-form__save-btn"
-              onClick={handleSaveCustom}
-              disabled={templateSaving || !customName.trim()}
-            >
-              💾 Save Workout Plan
+            <button className="workout-form__save-btn" onClick={handleSaveCustom} disabled={templateSaving}>
+              <Save size={15} /> Save Workout Plan
             </button>
           )}
         </div>
