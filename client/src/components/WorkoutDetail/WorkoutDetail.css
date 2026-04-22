@@ -1,0 +1,113 @@
+.wd {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ── Back button ──────────────────────────────────────── */
+.wd__back-btn {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* ── Header ───────────────────────────────────────────── */
+.wd__title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-primary);
+  margin: var(--space-1) 0;
+}
+
+/* ── Meta chips ───────────────────────────────────────── */
+.wd__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.wd__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  padding: 2px 9px;
+  white-space: nowrap;
+}
+
+.wd__chip--date     { color: var(--color-text-primary); }
+
+.wd__chip--duration {
+  color: var(--color-accent, #8b5cf6);
+  background: color-mix(in srgb, var(--color-accent, #8b5cf6) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-accent, #8b5cf6) 25%, transparent);
+}
+
+.wd__chip--done {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 30%, transparent);
+}
+
+.wd__chip--progress {
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-warning) 30%, transparent);
+}
+
+/* ── Exercises ────────────────────────────────────────── */
+.wd__exercises {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.wd__exercise {
+  padding: var(--space-4);
+  background: var(--color-surface-1);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.wd__exercise-name {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-3);
+}
+
+/* ── Set rows ─────────────────────────────────────────── */
+.wd__set {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--text-sm);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.wd__set:first-of-type { border-top: none; }
+
+.wd__set-label {
+  font-weight: var(--font-medium);
+  color: var(--color-text-tertiary);
+}
+
+.wd__set-detail {
+  color: var(--color-text-secondary);
+}
+

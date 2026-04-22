@@ -1,0 +1,119 @@
+.whi {
+  padding: var(--space-4);
+  background: var(--color-surface-1);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.whi:hover {
+  background: var(--color-surface-2);
+  box-shadow: var(--shadow-md);
+}
+
+.whi:active {
+  background: var(--color-surface-2);
+}
+
+.whi__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Row 1: name + status ─────────────────────────────── */
+.whi__top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.whi__name {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.whi__status {
+  flex-shrink: 0;
+  font-weight: var(--font-semibold);
+}
+
+/* ── Row 2: meta chips ────────────────────────────────── */
+.whi__meta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* ── Chips ────────────────────────────────────────────── */
+.whi__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  padding: 2px 9px;
+  white-space: nowrap;
+}
+
+.whi__chip--date {
+  color: var(--color-text-secondary);
+}
+
+.whi__chip--duration {
+  color: var(--color-accent, #8b5cf6);
+  background: color-mix(in srgb, var(--color-accent, #8b5cf6) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-accent, #8b5cf6) 25%, transparent);
+}
+
+.whi__chip--done {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 30%, transparent);
+}
+
+.whi__chip--failed {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-danger) 30%, transparent);
+}
+
+.whi__chip--incomplete {
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-warning) 30%, transparent);
+}
+
+.whi__chip--progress {
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-warning) 30%, transparent);
+}
+
+/* ── Chevron ──────────────────────────────────────────── */
+.whi__chevron {
+  color: var(--color-text-tertiary);
+  font-size: 1.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+}

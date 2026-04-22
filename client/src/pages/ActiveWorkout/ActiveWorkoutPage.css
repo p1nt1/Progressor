@@ -1,0 +1,261 @@
+.active-workout {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.active-workout__title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* ── Timer row ───────────────────────────────────────── */
+.active-workout__timer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-surface-1);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.active-workout__timer {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-extrabold);
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-tight);
+}
+
+.active-workout__timer--paused {
+  color: var(--color-warning);
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0.4; }
+}
+
+.active-workout__pause-btn {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-primary);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.active-workout__pause-btn:active {
+  background: var(--color-surface-3);
+}
+
+.active-workout__pause-btn--paused {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: #fff;
+}
+
+/* ── Exercise card ───────────────────────────────────── */
+.active-workout__exercise {
+  background: var(--color-surface-1);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.active-workout__exercise-name {
+  font-weight: var(--font-bold);
+  font-size: var(--text-md);
+  color: var(--color-text-primary);
+}
+
+/* ── Set row ─────────────────────────────────────────── */
+.active-workout__set-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: opacity var(--transition-fast);
+}
+
+.active-workout__set-row--done {
+  opacity: 0.5;
+}
+
+.active-workout__set-label {
+  width: 44px;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  flex-shrink: 0;
+}
+
+.active-workout__input {
+  width: 62px;
+  padding: var(--space-2) var(--space-1);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  text-align: center;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  transition: border-color var(--transition-fast);
+}
+
+.active-workout__input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.active-workout__input--reps {
+  width: 52px;
+}
+
+.active-workout__input--rpe {
+  width: 46px;
+}
+
+.active-workout__unit {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+}
+
+.active-workout__separator {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+}
+
+.active-workout__separator--rpe {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+}
+
+.active-workout__toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.active-workout__toggle:active {
+  transform: scale(0.9);
+}
+
+.active-workout__toggle--done {
+  background: var(--color-success);
+}
+
+.active-workout__toggle--pending {
+  background: var(--color-surface-2);
+  color: var(--color-text-tertiary);
+}
+
+/* ── Finish button ───────────────────────────────────── */
+.active-workout__finish-btn {
+  width: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: none;
+  background: var(--color-primary);
+  color: white;
+  font-weight: var(--font-bold);
+  font-size: var(--text-base);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  letter-spacing: var(--tracking-wide);
+}
+
+.active-workout__finish-btn:hover {
+  background: var(--color-primary-hover);
+}
+
+.active-workout__finish-btn:disabled {
+  background: var(--color-surface-3);
+  color: var(--color-text-tertiary);
+  cursor: wait;
+}
+
+/* ── Rest Timer Overlay ──────────────────────────────── */
+.rest-timer-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.rest-timer-overlay__content {
+  background: var(--color-surface-1);
+  border-radius: var(--radius-xl);
+  padding: var(--space-10) var(--space-12);
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  min-width: 220px;
+  border: 1px solid var(--color-border);
+}
+
+.rest-timer-overlay__label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--space-2);
+}
+
+.rest-timer-overlay__countdown {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-extrabold);
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin-bottom: var(--space-6);
+  letter-spacing: var(--tracking-tight);
+}
+
+.rest-timer-overlay__skip {
+  padding: var(--space-2) var(--space-6);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.rest-timer-overlay__skip:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text-primary);
+}
+
+/* ── AI review loading ───────────────────────────────── */
+.workout-form__review-loading {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  padding: var(--space-4);
+}

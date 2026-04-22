@@ -1,0 +1,483 @@
+.workout-form {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ── Review loading ──────────────────────────────────── */
+.workout-form__review-loading {
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── Page title ──────────────────────────────────────── */
+.workout-form__title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* ── Type pills ──────────────────────────────────────── */
+.workout-form__types {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.workout-form__type-btn {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-1);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  text-transform: capitalize;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.workout-form__type-btn--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+/* ── Mode toggle ─────────────────────────────────────── */
+.workout-form__mode-toggle {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.workout-form__mode-btn {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.workout-form__mode-btn--active {
+  background: var(--color-surface-1);
+  border-color: var(--color-primary);
+  color: var(--color-text-primary);
+}
+
+/* ── Generate button ─────────────────────────────────── */
+.workout-form__generate-btn {
+  width: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: none;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: var(--font-bold);
+  font-size: var(--text-base);
+  cursor: pointer;
+  letter-spacing: var(--tracking-wide);
+  transition: background var(--transition-fast);
+}
+
+.workout-form__generate-btn:hover {
+  background: var(--color-primary-hover);
+}
+
+.workout-form__generate-btn:disabled {
+  background: var(--color-surface-3);
+  color: var(--color-text-tertiary);
+  cursor: wait;
+}
+
+/* ── Generated plan card ─────────────────────────────── */
+.workout-form__plan {
+  background: var(--color-surface-1);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.workout-form__plan-name {
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.workout-form__plan-explanation {
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+.workout-form__plan-exercises {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* ── CTA buttons ─────────────────────────────────────── */
+.workout-form__save-btn {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: none;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: var(--font-bold);
+  font-size: var(--text-base);
+  cursor: pointer;
+  letter-spacing: var(--tracking-wide);
+  transition: background var(--transition-fast);
+}
+
+.workout-form__save-btn:hover {
+  background: var(--color-primary-hover);
+}
+
+.workout-form__save-btn:disabled {
+  background: var(--color-surface-3);
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+
+.workout-form__start-btn {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: none;
+  background: var(--color-success);
+  color: #fff;
+  font-weight: var(--font-bold);
+  font-size: var(--text-base);
+  cursor: pointer;
+  letter-spacing: var(--tracking-wide);
+  transition: background var(--transition-fast);
+}
+
+.workout-form__start-btn:hover {
+  background: var(--color-success-hover);
+}
+
+/* ── Saved toast ─────────────────────────────────────── */
+.workout-form__saved-toast {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid var(--color-success);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  text-align: center;
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  color: var(--color-success);
+  animation: fadeIn var(--transition-normal);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Custom workout builder ──────────────────────────── */
+.workout-form__custom {
+  background: var(--color-surface-1);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.workout-form__custom-name {
+  width: 100%;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-size: var(--text-base);
+  transition: border-color var(--transition-fast);
+}
+
+.workout-form__custom-name:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.workout-form__custom-name::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* ── Exercise picker ─────────────────────────────────── */
+.workout-form__exercise-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.workout-form__muscle-filter {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+}
+
+.workout-form__muscle-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-2);
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--color-border-subtle);
+  background: var(--color-surface-1);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.workout-form__muscle-btn-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.workout-form__muscle-btn-label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+/* Per-group accent on active */
+.workout-form__muscle-btn--active,
+.workout-form__muscle-btn:active {
+  color: #fff;
+  border-color: transparent;
+}
+
+.workout-form__muscle-btn--all.workout-form__muscle-btn--active     { background: var(--color-primary); }
+.workout-form__muscle-btn--chest.workout-form__muscle-btn--active    { background: #f97316; }
+.workout-form__muscle-btn--back.workout-form__muscle-btn--active     { background: #3b82f6; }
+.workout-form__muscle-btn--shoulders.workout-form__muscle-btn--active{ background: #a855f7; }
+.workout-form__muscle-btn--legs.workout-form__muscle-btn--active     { background: #22c55e; }
+.workout-form__muscle-btn--arms.workout-form__muscle-btn--active     { background: #ef4444; }
+.workout-form__muscle-btn--core.workout-form__muscle-btn--active     { background: #14b8a6; }
+
+/* Subtle tint on hover for inactive */
+.workout-form__muscle-btn:not(.workout-form__muscle-btn--active):hover {
+  background: var(--color-surface-2);
+  color: var(--color-text-secondary);
+  border-color: var(--color-border);
+}
+
+.workout-form__exercise-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+}
+
+.workout-form__exercise-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.workout-form__exercise-option:last-child {
+  border-bottom: none;
+}
+
+.workout-form__exercise-option:hover {
+  background: var(--color-surface-1);
+}
+
+.workout-form__exercise-option-name {
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+}
+
+.workout-form__exercise-option-badge {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  background: var(--color-surface-2);
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-full);
+}
+
+/* ── Selected exercises ──────────────────────────────── */
+.workout-form__selected-exercises {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.workout-form__selected-exercise {
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.workout-form__selected-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.workout-form__selected-name {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+}
+
+.workout-form__remove-btn {
+  background: none;
+  border: none;
+  color: var(--color-danger);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  opacity: 0.7;
+  transition: opacity var(--transition-fast);
+}
+
+.workout-form__remove-btn:hover {
+  opacity: 1;
+}
+
+.workout-form__set-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.workout-form__set-label {
+  width: 36px;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+}
+
+.workout-form__set-input {
+  width: 56px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-1);
+  color: var(--color-text-primary);
+  text-align: center;
+  font-size: var(--text-xs);
+  transition: border-color var(--transition-fast);
+}
+
+.workout-form__set-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.workout-form__set-unit {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+}
+
+.workout-form__add-set-btn {
+  background: none;
+  border: 1px dashed var(--color-border);
+  color: var(--color-text-secondary);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--text-xs);
+  margin-top: var(--space-1);
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.workout-form__add-set-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* ── AI info card ────────────────────────────────────── */
+.ai-info-card {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-primary) 12%, var(--color-surface-1)),
+    color-mix(in srgb, var(--color-accent) 8%, var(--color-surface-1))
+  );
+  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ai-info-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ai-info-card__icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.ai-info-card__title {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--color-primary-light);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.ai-info-card__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ai-info-card__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-snug);
+}
+
+.ai-info-card__bullet {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ai-info-card__item strong {
+  color: var(--color-text-primary);
+  font-weight: var(--font-semibold);
+}
