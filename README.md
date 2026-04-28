@@ -4,6 +4,8 @@ A mobile-first PWA for intermediate lifters that generates adaptive workout plan
 
 Built with **React**, **Express**, **PostgreSQL**, and **OpenAI** — deployed on **Netlify** (client) + **Railway** (API).
 
+🚀 **Live app:** [https://joyful-starship-7665f4.netlify.app/](https://joyful-starship-7665f4.netlify.app/)
+
 ## Architecture
 
 ```
